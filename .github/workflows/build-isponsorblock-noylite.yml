@@ -1,16 +1,10 @@
-name: Build YTLitePlusEXTRA IPA
+name: Build IPA with iSponsorBlock (no YTLite)
 on:
   workflow_dispatch:
     inputs:
       ipa_url:
         description: "URL to the decrypted IPA file"
         default: ""
-        required: true
-        type: string
-        
-      ytlite_version:
-        description: "YTLite Version (You can enter the version manually from YTLite releases or leave default.)"
-        default: "5.2.1"
         required: true
         type: string
 
@@ -38,6 +32,12 @@ on:
         required: false
         type: boolean
 
+      isponsorblock:
+        description: "Integrate iSponsorBlock"
+        default: true
+        required: false
+        type: boolean
+
       # volboost:
       #   description: "Integrate VolumeBoostYT (Require iOS 16+)"
       #   default: true
@@ -50,7 +50,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build YTLitePlusEXTRA IPA
+    name: Build IPA with iSponsorBlock (no YTLite)
     runs-on: macos-latest
     permissions:
       contents: write
@@ -59,7 +59,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@v1
         with:
-          exclude_inputs: bundle_id,display_name,ytlite_version,demc,ytvid
+          exclude_inputs: bundle_id,display_name,demc,ytvid
           
       - name: Download and Validate IPA
         run: |
@@ -101,10 +101,7 @@ jobs:
           pipx install --force https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip
           wget --quiet --no-verbose "https://github.com/inoahdev/tbd/releases/download/2.2/tbd-mac" -O /usr/local/bin/tbd
           chmod +x /usr/local/bin/tbd 
-
-      - name: Download YTLite .deb
-        run: wget "https://github.com/dayanch96/YTLite/releases/download/v${{ inputs.ytlite_version }}/com.dvntm.ytlite_${{ inputs.ytlite_version }}_iphoneos-arm64.deb" --quiet --no-verbose -O ytlite.deb
-
+          
       - name: Clone Open in YouTube (Safari Extension)
         run: |
           git clone --quiet -n --depth=1 --filter=tree:0 https://github.com/BillyCurtis/OpenYouTubeSafariExtension.git
@@ -150,6 +147,10 @@ jobs:
       - name: Clone DontEatMyContent
         if: ${{ inputs.demc }}
         run: git clone --quiet --depth=1 https://github.com/therealFoxster/DontEatMyContent.git
+
+      - name: Clone iSponsorBlock
+        if: ${{ inputs.isponsorblock }}
+        run: git clone --quiet --depth=1 https://github.com/Galactic-Dev/iSponsorBlock.git
 
       - name: Clone YouMute
         run: git clone --quiet --depth=1 https://github.com/PoomSmart/YouMute.git
@@ -250,6 +251,13 @@ jobs:
           make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/demc.deb
 
+      - name: Build iSponsorBlock
+        if: ${{ inputs.isponsorblock }}
+        run: |
+          cd iSponsorBlock
+          make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless TARGET=iphone:clang:latest:13.0
+          mv packages/*.deb ${{ github.workspace }}/isponsorblock.deb
+
       - name: Build YouMute
         run: |
           cd YouMute
@@ -345,19 +353,19 @@ jobs:
             tweaks="$tweaks $f"
           done
           
-          cyan -i youtube.ipa -o YTLitePlusEXTRA_${{ env.YT_VERSION }}_v${{ inputs.ytlite_version }}.ipa -uwef $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
+          cyan -i youtube.ipa -o YTLitePlusEXTRA_NoYTLite_${{ env.YT_VERSION }}.ipa -uwef $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
 
       - name: Create a Draft Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ytliteplusextra-ipa${{ github.run_number }}
-          name: YTLitePlusEXTRA_${{ env.YT_VERSION }}_v${{ inputs.ytlite_version }} (${{ github.run_number }}) 
-          files: YTLitePlusEXTRA_${{ env.YT_VERSION }}_v${{ inputs.ytlite_version }}.ipa
+          tag_name: ytliteplusextra-ipa-noytlite${{ github.run_number }}
+          name: YTLitePlusEXTRA_NoYTLite_${{ env.YT_VERSION }} (${{ github.run_number }}) 
+          files: YTLitePlusEXTRA_NoYTLite_${{ env.YT_VERSION }}.ipa
           draft: true
 
       - name: Job Summary - Build Conplete
         run: |
-          echo -e '### 🛠️ Build YTLitePlusEXTRA IPA Complete!' >> $GITHUB_STEP_SUMMARY
+          echo -e '### 🛠️ Build IPA wtihout YTLite Complete!' >> $GITHUB_STEP_SUMMARY
 
       - name: Job Summary - Output the Draft Release Link
         run: |

@@ -1,4 +1,4 @@
-name: Build IPA without YTLite
+name: Build YouPro IPA with iSponsorBlock
 on:
   workflow_dispatch:
     inputs:
@@ -32,6 +32,12 @@ on:
         required: false
         type: boolean
 
+      isponsorblock:
+        description: "Integrate iSponsorBlock"
+        default: true
+        required: false
+        type: boolean
+
       # volboost:
       #   description: "Integrate VolumeBoostYT (Require iOS 16+)"
       #   default: true
@@ -44,16 +50,19 @@ concurrency:
 
 jobs:
   build:
-    name: Build IPA without YTLite
+    name: Build YouPro IPA with iSponsorBlock
     runs-on: macos-latest
     permissions:
       contents: write
 
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@v1
         with:
-          exclude_inputs: bundle_id,display_name,demc,ytvid
+          exclude_inputs: bundle_id,display_name,demc,ytvid,isponsorblock
           
       - name: Download and Validate IPA
         run: |
@@ -72,7 +81,7 @@ jobs:
           echo "YT_VERSION=$(grep -A 1 '<key>CFBundleVersion</key>' ytextracted/Payload/YouTube.app/Info.plist | grep '<string>' | awk -F'[><]' '{print $3}')" >> $GITHUB_ENV
 
       - name: Install Dependencies
-        run: brew install make ldid swiftlint
+        run: brew install make ldid swiftlint dpkg
 
       - name: Set PATH Environment Variables
         run: |
@@ -114,6 +123,10 @@ jobs:
       - name: Clone PSHeader
         run: git clone --quiet --depth=1 https://github.com/PoomSmart/PSHeader.git $THEOS/include/PSHeader
 
+      - name: Clone YouPro
+        run: |
+          git clone https://x-access-token:${{ secrets.YOUPRO }}@github.com/mrdrvt99/YouPro.git
+
       - name: Clone YouPiP
         run: git clone --quiet --depth=1 https://github.com/PoomSmart/YouPiP.git
     
@@ -141,6 +154,10 @@ jobs:
       - name: Clone DontEatMyContent
         if: ${{ inputs.demc }}
         run: git clone --quiet --depth=1 https://github.com/therealFoxster/DontEatMyContent.git
+
+      - name: Clone iSponsorBlock
+        if: ${{ inputs.isponsorblock }}
+        run: git clone --quiet --depth=1 https://github.com/Galactic-Dev/iSponsorBlock.git
 
       - name: Clone YouMute
         run: git clone --quiet --depth=1 https://github.com/PoomSmart/YouMute.git
@@ -186,6 +203,13 @@ jobs:
       #   if: ${{ inputs.volboost }}
       #   run: git clone --quiet --depth=1 https://github.com/VasirakCalgux/VolumeBoostYT.git
         
+      - name: Build YouPro
+        run: |
+          cd YouPro/YouPro
+          chmod -R 755 .
+          dpkg-deb --root-owner-group -Zgzip --build . ../YouPro.deb
+          mv ../YouPro.deb ${{ github.workspace }}/YouPro.deb
+      
       - name: Build YouPiP
         run: |
           cd YouPiP
@@ -240,6 +264,13 @@ jobs:
           cd DontEatMyContent
           make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/demc.deb
+
+      - name: Build iSponsorBlock
+        if: ${{ inputs.isponsorblock }}
+        run: |
+          cd iSponsorBlock
+          make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless TARGET=iphone:clang:latest:13.0
+          mv packages/*.deb ${{ github.workspace }}/isponsorblock.deb
 
       - name: Build YouMute
         run: |
@@ -336,19 +367,19 @@ jobs:
             tweaks="$tweaks $f"
           done
           
-          cyan -i youtube.ipa -o YTLitePlusEXTRA_NoYTLite_${{ env.YT_VERSION }}.ipa -uwef $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
+          cyan -i youtube.ipa -o YouProExtra_${{ env.YT_VERSION }}.ipa -uwef $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
 
       - name: Create a Draft Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ytliteplusextra-ipa-noytlite${{ github.run_number }}
-          name: YTLitePlusEXTRA_NoYTLite_${{ env.YT_VERSION }} (${{ github.run_number }}) 
-          files: YTLitePlusEXTRA_NoYTLite_${{ env.YT_VERSION }}.ipa
+          tag_name: youproextra-ipa${{ github.run_number }}
+          name: YouProExtra_${{ env.YT_VERSION }} (${{ github.run_number }}) 
+          files: YouProExtra_${{ env.YT_VERSION }}.ipa
           draft: true
 
-      - name: Job Summary - Build Conplete
+      - name: Job Summary - Build Complete
         run: |
-          echo -e '### 🛠️ Build IPA wtihout YTLite Complete!' >> $GITHUB_STEP_SUMMARY
+          echo -e '### 🛠️ Build YouPro IPA Complete!' >> $GITHUB_STEP_SUMMARY
 
       - name: Job Summary - Output the Draft Release Link
         run: |
