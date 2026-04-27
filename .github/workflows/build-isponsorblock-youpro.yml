@@ -130,9 +130,9 @@ jobs:
             git clone --quiet --depth=1 https://github.com/PoomSmart/PSHeader.git $THEOS/include/PSHeader
           fi
 
-      - name: Clone YouPro
-        run: git clone --quiet --depth=1 https://github.com/mrdrvt99/YouPro.git
-
+      - name: Clone YTVideoOverlay
+        run: git clone --quiet --depth=1 https://github.com/PoomSmart/YTVideoOverlay.git
+          
       - name: Cache Tweaks
         id: cache_tweaks
         uses: ./.github/actions/cache-tweaks
@@ -142,7 +142,6 @@ jobs:
           demc: ${{ inputs.demc }}
           ytvid: ${{ inputs.ytvid }}
           theos_commit: ${{ steps.commit_hashes.outputs.theos }}
-          cyan_commit: ${{ steps.commit_hashes.outputs.cyan }}
           youpip_commit: ${{ steps.commit_hashes.outputs.youpip }}
           ytuhd_commit: ${{ steps.commit_hashes.outputs.ytuhd }}
           ryd_commit: ${{ steps.commit_hashes.outputs.ryd }}
@@ -167,21 +166,19 @@ jobs:
           demc_commit: ${{ steps.commit_hashes.outputs.demc }}
           ytvid_commit: ${{ steps.commit_hashes.outputs.ytvid }}
 
-      - name: Build YouPro
-        run: |
-          cd YouPro
-          chmod -R 755 .
-          dpkg-deb --root-owner-group -Zgzip --build . ../YouPro.deb
-          mv ../YouPro.deb ${{ github.workspace }}/YouPro.deb
-
-      - name: Clone YTVideoOverlay
-        run: git clone --quiet --depth=1 https://github.com/PoomSmart/YTVideoOverlay.git
-
       - name: Build YTVideoOverlay
         if: steps.cache_tweaks.outputs.cache_ytvo_hit != 'true'
         run: |
           cd YTVideoOverlay && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/ytvo.deb
+
+      - name: Clone and Build YouPro
+        run: |
+          git clone --quiet --depth=1 https://github.com/mrdrvt99/YouPro.git
+          cd YouPro
+          chmod -R 755 .
+          dpkg-deb --root-owner-group -Zgzip --build . ../YouPro.deb
+          mv ../YouPro.deb ${{ github.workspace }}/YouPro.deb
 
       - name: Clone and Build YouPiP
         if: steps.cache_tweaks.outputs.cache_youpip_hit != 'true'
@@ -217,7 +214,7 @@ jobs:
           git clone --quiet --depth=1 https://github.com/PoomSmart/YTABConfig.git
           cd YTABConfig && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/ytabconfig.deb
-
+  
       - name: Clone and Build YouQuality
         if: steps.cache_tweaks.outputs.cache_youquality_hit != 'true'
         run: |
@@ -341,14 +338,14 @@ jobs:
 
       - name: Inject Tweaks Into IPA
         run: |
-          tweaks="OpenYouTubeSafariExtension.appex YouPro.deb"
+          tweaks="OpenYouTubeSafariExtension.appex"
           for f in *.deb; do
             [ -f "$f" ] && tweaks="$tweaks $f"
           done
           cyan -i youtube.ipa -o YouProExtra_${{ env.YT_VERSION }}.ipa -uwef $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
 
       - name: Create a Draft Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: youproextra-ipa${{ github.run_number }}
           name: YouProExtra_${{ env.YT_VERSION }} (${{ github.run_number }})
