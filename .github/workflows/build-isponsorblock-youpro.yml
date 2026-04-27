@@ -124,8 +124,7 @@ jobs:
         run: git clone --quiet --depth=1 https://github.com/PoomSmart/PSHeader.git $THEOS/include/PSHeader
 
       - name: Clone YouPro
-        run: |
-          git clone https://x-access-token:${{ secrets.YOUPRO }}@github.com/mrdrvt99/YouPro.git
+        run: git clone --quiet --depth=1 https://github.com/mrdrvt99/YouPro.git
 
       - name: Clone YouPiP
         run: git clone --quiet --depth=1 https://github.com/PoomSmart/YouPiP.git
@@ -205,7 +204,7 @@ jobs:
         
       - name: Build YouPro
         run: |
-          cd YouPro/YouPro
+          cd YouPro
           chmod -R 755 .
           dpkg-deb --root-owner-group -Zgzip --build . ../YouPro.deb
           mv ../YouPro.deb ${{ github.workspace }}/YouPro.deb
