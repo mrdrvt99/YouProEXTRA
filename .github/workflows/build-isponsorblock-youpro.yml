@@ -132,6 +132,13 @@ jobs:
 
       - name: Clone YTVideoOverlay
         run: git clone --quiet --depth=1 https://github.com/PoomSmart/YTVideoOverlay.git
+
+      - name: Install libundirect
+        run: |
+          git clone --quiet --depth=1 https://github.com/opa334/libundirect.git
+          mkdir -p $THEOS/include/libundirect
+          cp libundirect/libundirect_dynamic.h $THEOS/include/libundirect/
+          cp libundirect/libundirect.h $THEOS/include/libundirect/
           
       - name: Cache Tweaks
         id: cache_tweaks
@@ -190,8 +197,8 @@ jobs:
       - name: Clone and Build YTUHD
         if: steps.cache_tweaks.outputs.cache_ytuhd_hit != 'true'
         run: |
-          git clone --quiet --depth=1 https://github.com/Tonwalter888/YTUHD.git
-          cd YTUHD && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          git clone --quiet --depth=1 https://github.com/PoomSmart/YTUHD.git
+          cd YTUHD && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless SIDELOAD=1
           mv packages/*.deb ${{ github.workspace }}/ytuhd.deb
 
       - name: Clone and Build Return-YouTube-Dislikes
