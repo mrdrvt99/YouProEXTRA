@@ -7,9 +7,9 @@ inputs:
   youpip:
     required: false
     default: 'true'
-#  ytuhd:
-#    required: false
-#    default: 'true'
+  ytuhd:
+    required: false
+    default: 'true'
   ryd:
     required: false
     default: 'true'
@@ -68,8 +68,8 @@ inputs:
     required: true
   youpip_commit:
     required: true
-#  ytuhd_commit:
-#    required: true
+  ytuhd_commit:
+    required: true
   ryd_commit:
     required: true
   ygs_commit:
@@ -133,7 +133,7 @@ inputs:
     
 outputs:
   cache_youpip_hit:        { value: "${{ steps.cache_youpip.outputs.cache-hit }}" }
-#  cache_ytuhd_hit:         { value: "${{ steps.cache_ytuhd.outputs.cache-hit }}" }
+  cache_ytuhd_hit:         { value: "${{ steps.cache_ytuhd.outputs.cache-hit }}" }
   cache_ryd_hit:           { value: "${{ steps.cache_ryd.outputs.cache-hit }}" }
   cache_ygs_hit:           { value: "${{ steps.cache_ygs.outputs.cache-hit }}" }
   cache_ytvo_hit:          { value: "${{ steps.cache_ytvo.outputs.cache-hit }}" }
@@ -168,12 +168,12 @@ runs:
         path: ${{ github.workspace }}/youpip.deb
         key: youpip-${{ inputs.youpip_commit }}-sdk${{ inputs.sdk_version }}
 
-#    - uses: actions/cache@v6
-#      if: inputs.ytuhd == 'true'
-#      id: cache_ytuhd
-#      with:
-#        path: ${{ github.workspace }}/ytuhd.deb
-#        key: ytuhd-v2-${{ inputs.ytuhd_commit }}-sdk${{ inputs.sdk_version }}
+    - uses: actions/cache@v6
+      if: inputs.ytuhd == 'true'
+      id: cache_ytuhd
+      with:
+        path: ${{ github.workspace }}/ytuhd.deb
+        key: ytuhd-v1-${{ inputs.ytuhd_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v6
       if: inputs.ryd == 'true'

@@ -10,7 +10,7 @@ YouTube IPA builder packed with customizable tweaks. Also Known as Youtubemaxxin
 - **[YTMusicUltimate](https://github.com/mrdrvt99/YTMusicUltimate)** - Background playback, ad removal, Downloads and other small improvements.
 - [YouPip](https://github.com/PoomSmart/YouPiP) -  Enables native PiP in iOS YouTube app.
 - [YTUHD](https://github.com/Tonwalter888/YTUHD) - Unlocks 1440p and 2160p resolutions in iOS YouTube app.**(unstable tweak)**
-  > ⚠️ **Removed:** No longer functional. Temporarily disabled.
+  > ⚠️ **NOTE:** YTUHD is not compatible with +21.25.5 versions.
 - [ReturnYoutubeDislikes](https://github.com/PoomSmart/Return-YouTube-Dislikes) -  Brings Back Dislikes On YouTube iOS. 
 - [YouMute](https://github.com/PoomSmart/YouMute) - Mutes/unmutes videos on iOS YouTube app faster.**(custom build)**
 - [YouSpeed](https://github.com/PoomSmart/YouSpeed) - Views/changes video speed in iOS YouTube app faster.**(custom build)**

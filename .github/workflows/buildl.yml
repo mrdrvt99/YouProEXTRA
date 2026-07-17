@@ -46,11 +46,11 @@ on:
         required: false
         type: boolean
 
-#      ytuhd:
-#        description: "Integrate YTUHD"
-#        default: true
-#        required: false
-#        type: boolean
+      ytuhd:
+        description: "Integrate YTUHD"
+        default: true
+        required: false
+        type: boolean
 
       ryd:
         description: "Integrate Return YouTube Dislikes"
@@ -215,7 +215,7 @@ jobs:
         with:
           sdk_version: '18.6'
           youpip: ${{ inputs.youpip }}
-#          ytuhd: ${{ inputs.ytuhd }}
+          ytuhd: ${{ inputs.ytuhd }}
           ryd: ${{ inputs.ryd }}
           ytabconfig: ${{ inputs.ytabconfig }}
           youquality: ${{ inputs.youquality }}
@@ -228,7 +228,7 @@ jobs:
           nativeshare: ${{ inputs.nativeshare }}
           theos_commit: ${{ steps.commit_hashes.outputs.theos }}
           youpip_commit: ${{ steps.commit_hashes.outputs.youpip }}
-#          ytuhd_commit: ${{ steps.commit_hashes.outputs.ytuhd }}
+          ytuhd_commit: ${{ steps.commit_hashes.outputs.ytuhd }}
           ryd_commit: ${{ steps.commit_hashes.outputs.ryd }}
           ygs_commit: ${{ steps.commit_hashes.outputs.ygs }}
           ytvo_commit: ${{ steps.commit_hashes.outputs.ytvo }}
@@ -275,12 +275,12 @@ jobs:
           cd YouPiP && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/youpip.deb
 
-#      - name: Clone and Build YTUHD
-#        if: inputs.ytuhd == true && steps.cache_tweaks.outputs.cache_ytuhd_hit != 'true'
-#        run: |
-#          git clone --quiet --depth=1 https://github.com/Tonwalter888/YTUHD.git
-#          cd YTUHD && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
-#         mv packages/*.deb ${{ github.workspace }}/ytuhd.deb
+      - name: Clone and Build YTUHD
+        if: inputs.ytuhd == true && steps.cache_tweaks.outputs.cache_ytuhd_hit != 'true'
+        run: |
+          git clone --quiet --depth=1 https://github.com/Tonwalter888/YTUHD.git
+          cd YTUHD && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
+          mv packages/*.deb ${{ github.workspace }}/ytuhd.deb
 
       - name: Clone and Build Return-YouTube-Dislikes
         if: inputs.ryd == true && steps.cache_tweaks.outputs.cache_ryd_hit != 'true'

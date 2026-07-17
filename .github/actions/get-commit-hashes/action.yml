@@ -25,9 +25,9 @@ outputs:
   youpip:
     description: YouPiP commit hash
     value: ${{ steps.hashes.outputs.youpip }}
-#  ytuhd:
-#    description: YTUHD commit hash
-#    value: ${{ steps.hashes.outputs.ytuhd }}
+  ytuhd:
+    description: YTUHD commit hash
+    value: ${{ steps.hashes.outputs.ytuhd }}
   ryd:
     description: Return-YouTube-Dislikes commit hash
     value: ${{ steps.hashes.outputs.ryd }}
@@ -108,7 +108,7 @@ runs:
 
         echo "theos=$(get_hash theos/theos)"                                         >> $GITHUB_OUTPUT
         echo "youpip=$(get_hash PoomSmart/YouPiP)"                                   >> $GITHUB_OUTPUT
-        #echo "ytuhd=$(get_hash Tonwalter888/YTUHD)"                                  >> $GITHUB_OUTPUT
+        echo "ytuhd=$(get_hash Tonwalter888/YTUHD)"                                  >> $GITHUB_OUTPUT
         echo "ryd=$(get_hash PoomSmart/Return-YouTube-Dislikes)"                     >> $GITHUB_OUTPUT
         echo "ygs=$(get_hash PoomSmart/YouGroupSettings)"                            >> $GITHUB_OUTPUT
         echo "ytvo=$(get_hash PoomSmart/YTVideoOverlay)"                             >> $GITHUB_OUTPUT

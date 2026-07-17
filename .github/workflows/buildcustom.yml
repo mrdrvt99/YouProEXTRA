@@ -45,11 +45,11 @@ on:
         required: false
         type: boolean
 
-#      ytuhd:
-#        description: "Integrate YTUHD"
-#        default: true
-#        required: false
-#        type: boolean
+      ytuhd:
+        description: "Integrate YTUHD"
+        default: true
+        required: false
+        type: boolean
 
       ryd:
         description: "Integrate Return YouTube Dislikes"
@@ -167,7 +167,7 @@ jobs:
       volumeboost: ${{ inputs.volumeboost }}
       nativeshare: ${{ inputs.nativeshare }}
       youpip: ${{ inputs.youpip }}
-#      ytuhd: ${{ inputs.ytuhd }}
+      ytuhd: ${{ inputs.ytuhd }}
       ryd: ${{ inputs.ryd }}
       ytabconfig: ${{ inputs.ytabconfig }}
       youquality: ${{ inputs.youquality }}
