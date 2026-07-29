@@ -184,8 +184,18 @@ jobs:
         with:
           exclude_inputs: bundle_id,display_name,demc,isponsorblock,opensafari,youpip,ryd,ytabconfig,youquality,youslider,ytsilentvote,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmute,youloop
 
+      - name: Test IPA Download Speed
+        run: |
+            echo "Testing connection..."
+
+            time curl -L \
+               --output /dev/null \
+               --write-out "\nSpeed: %{speed_download} bytes/sec\nTotal: %{size_download} bytes\nTime: %{time_total}s\n" \
+                "${{ inputs.ipa_url }}"
+
       - name: Download and Validate IPA
         run: |
+        
           wget "${{ inputs.ipa_url }}" --quiet --no-verbose -O youtube.ipa
           file_type=$(file --mime-type -b youtube.ipa)
           if [[ "$file_type" != "application/x-ios-app" && "$file_type" != "application/zip" ]]; then
