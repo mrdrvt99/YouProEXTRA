@@ -9,9 +9,8 @@
 ## Main features
 - **[YouPro](https://t.me/alibusut)** - Basic Youtube Premium features; Download Videos, No ads, Background Playback.
 - **[YoutubePlus/YTLite](https://github.com/dayanch96/YTLite)** - A flexible enhancer for YouTube on iOS, featuring over hundred customizable options.
-- **[YTKillerPlus](https://repo.ikghd.me/depictions/?p=me.ikghd.ytkplus)** - Alternative Youtube tweak with more customized options.
-- **[YouMod](https://github.com/Tonwalter888/YouMod)** - a free alternative youtube tweak with customized options.
 - **[YTKACE](https://github.com/itzzace/ytkace)** - A new free and open-source YouTube enhancer for iOS with downloads, SponsorBlock, DeArrow, player controls, and interface customization.
+- **[YouMod](https://github.com/Tonwalter888/YouMod)** - a free alternative youtube tweak with customized options.
 - **[YTMusicUltimate](https://github.com/mrdrvt99/YTMusicUltimate)** - Background playback, ad removal, Downloads and other small improvements.
 
 ---
@@ -26,7 +25,7 @@
 - [YouLoop](https://github.com/bhackel/YouLoop.git) - Adds a player button to enable/disable looping on the current video.**(🛠️custom build)**
 - [YouQuality](https://github.com/PoomSmart/YTABConfig) - Views/changes video quality on iOS YouTube app faster.
 - [YouChooseQuality](https://github.com/PoomSmart/YouChooseQuality) - Auto-selects the video quality of choice in iOS YouTube app.
-- [YouSlider](https://github.com/PoomSmart/YouSlider) - Customizes iOS YouTube video slider and scrubber.**(🛠️custom build)**
+- [YouSlider](https://github.com/PoomSmart/YouSlider) - Customizes iOS YouTube video slider and scrubber.**(🛠️custom build)**. 
 - [YouGetCaption](https://github.com/PoomSmart/YouGetCaption) - Views and copies caption from YouTube videos.
 - [YTweaks](https://github.com/fosterbarnes/YTweaks) - Various tweaks for the iOS YouTube app.
 - [Gonerino](https://github.com/castdrian/Gonerino) - Filter videos/channels/keywords that you don't want them to show up on your feeds.
@@ -34,7 +33,7 @@
   > ⚠️ **NOTE:** iSponsorBlock is unstable in versions +21.25.5 and above.⚠️
 - [DontEatMyContent](https://github.com/therealFoxster/DontEatMyContent) - Prevent the notch/Dynamic Island from munching on 2:1 video content in YouTube 
 - [YTHoldForSpeed](https://github.com/joshuaseltzer/YTHoldForSpeed) - Tap and hold on the YouTube video player to toggle a selected playback speed.
-- [VolumeBoostYT](https://github.com/candyzp/VolumeBoostYT) - A powerful iOS tweak that provides an independent, gesture-based volume control for the YouTube app, completely separate from the system volume. Boost the YouTube internal volume up to 2000% (20x multiplier).
+- [VolumeBoostYT](https://github.com/mrdrvt99/VolumeBoostYT) - A powerful iOS tweak that provides an independent, gesture-based volume control for the YouTube app, completely separate from the system volume. Boost the YouTube internal volume up to 2000% (20x multiplier). originally made by [@candyzp](https://github.com/candyzp)
   > ⚠️ **NOTE:** Turn off/on tweak again if the audio is not playing.⚠️
   > 
   > ⚠️ **NOTE:** If you're having issues with right-edge panel keyboard buttons not responding, turn it off.⚠️
@@ -93,11 +92,11 @@
 
 ## Supported YouTube version
 <ul>
-   <li><strong>Latest confirmed:</strong> 21.38.3</li>
+   <li><strong>Latest confirmed:</strong> 21.45.4</li>
 
   > [!NOTE]
   > - iOS14+ and 16+ builds are now available on the releases page.
   
-   <li><strong>Date tested:</strong> Sep 28th, 2026</li>
-   <li><strong>YouPro/YTLite/YTKP/YTKACE/YouMod:</strong> 1.3.1/6.0b1/6.1/1.1.0/2.0.0</li>
+   <li><strong>Date tested:</strong> Nov 15th, 2026</li>
+   <li><strong>YouPro/YTLite/YTKACE/YouMod:</strong> 1.3.4/6.0/1.1.7/2.0.0</li>
 </ul>
