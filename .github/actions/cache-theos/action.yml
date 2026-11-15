@@ -1,41 +1,60 @@
 name: Cache Theos
-description: Caches Theos clone and iOS SDK
+description: Restores (or creates) the pinned Theos checkout together with the iOS SDK
 
 inputs:
   theos_commit:
-    required: true
+    description: Pinned Theos commit (part of the cache key)
+    required: false
+    default: 9bc73406cf80b711ef4d02c15ff1dedc4478a275
   sdk_version:
+    description: iOS SDK version bundled into Theos (part of the cache key)
     required: false
     default: '18.6'
 
 outputs:
   cache-hit:
-    description: Whether Theos was restored from cache
+    description: Whether Theos (including the SDK) was restored from cache
     value: ${{ steps.cache.outputs.cache-hit }}
 
 runs:
   using: composite
   steps:
+    - name: Set THEOS env
+      shell: bash
+      run: echo "THEOS=${{ github.workspace }}/theos" >> "$GITHUB_ENV"
+
     - name: Restore Theos cache
       id: cache
       uses: actions/cache@v6
       with:
         path: ${{ github.workspace }}/theos
-        key: theos-v3-9bc73406cf80b711ef4d02c15ff1dedc4478a275-sdk${{ inputs.sdk_version }}
+        key: theos-v3-${{ inputs.theos_commit }}-sdk${{ inputs.sdk_version }}
 
     - name: Clone Theos
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
+      env:
+        THEOS: ${{ github.workspace }}/theos
+        THEOS_COMMIT: ${{ inputs.theos_commit }}
       run: |
-        git clone --quiet https://github.com/theos/theos.git ${{ github.workspace }}/theos
-        cd ${{ github.workspace }}/theos
-        git checkout --quiet 9bc73406cf80b711ef4d02c15ff1dedc4478a275
+        git clone --quiet https://github.com/theos/theos.git "$THEOS"
+        cd "$THEOS"
+        git checkout --quiet "$THEOS_COMMIT"
         git submodule update --quiet --init --recursive --depth=1
 
-    - name: Set THEOS env
+    - name: Download iOS SDK
+      if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
-      run: echo "THEOS=${{ github.workspace }}/theos" >> $GITHUB_ENV
-
-    - name: Export THEOS path
-      shell: bash
-      run: echo "THEOS=${{ github.workspace }}/theos" >> $GITHUB_ENV
+      env:
+        THEOS: ${{ github.workspace }}/theos
+        SDK_VERSION: ${{ inputs.sdk_version }}
+      run: |
+        sdk_repo="$RUNNER_TEMP/iOS-SDKs"
+        git clone --quiet --depth=1 -n --filter=tree:0 https://github.com/Tonwalter888/iOS-SDKs.git "$sdk_repo"
+        cd "$sdk_repo"
+        git sparse-checkout set --no-cone "iPhoneOS${SDK_VERSION}.sdk"
+        git checkout
+        mkdir -p "$THEOS/sdks"
+        mv "iPhoneOS${SDK_VERSION}.sdk" "$THEOS/sdks/"
+        test -d "$THEOS/sdks/iPhoneOS${SDK_VERSION}.sdk"
+        rm -rf "$sdk_repo"

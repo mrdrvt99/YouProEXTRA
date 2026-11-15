@@ -110,6 +110,9 @@ on:
         required: false
         type: boolean
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -118,10 +121,12 @@ jobs:
   build:
     name: Build YouMod IPA
     runs-on: macos-15
+    timeout-minutes: 120
     permissions:
       contents: write
     env:
       HOMEBREW_NO_ENV_HINTS: 1
+      SDK_VERSION: '18.6'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -132,8 +137,19 @@ jobs:
           exclude_inputs: bundle_id,display_name,youpip,ytuhd,ryd,ytabconfig,youquality,gonerino,ytweaks,yougetcaption,demc,youchoose,ythold,volumeboost,nativeshare,opensafari,pleasedontstopthemusic
 
       - name: Download and Validate IPA
+        env:
+          IPA_URL: ${{ inputs.ipa_url }}
         run: |
-          wget "${{ inputs.ipa_url }}" --quiet --no-verbose -O youtube.ipa
+          download() {
+            rm -f "$2"
+            if wget --quiet --no-verbose --tries=3 --waitretry=2 -O "$2" "$1"; then
+              return 0
+            fi
+            echo "::warning::wget failed for $2, retrying with curl"
+            rm -f "$2"
+            curl --fail --location --silent --show-error --retry 3 --retry-delay 2 -o "$2" "$1"
+          }
+          download "$IPA_URL" youtube.ipa
           file_type=$(file --mime-type -b youtube.ipa)
           if [[ "$file_type" != "application/x-ios-app" && "$file_type" != "application/zip" ]]; then
             echo "::error::Validation failed: The downloaded file is not a valid IPA. Detected type: $file_type."
@@ -142,9 +158,16 @@ jobs:
 
       - name: Get YouTube Version
         run: |
-          unzip -q youtube.ipa -d ytextracted
-          echo "YT_VERSION=$(grep -A 1 '<key>CFBundleVersion</key>' ytextracted/Payload/YouTube.app/Info.plist | grep '<string>' | awk -F'[><]' '{print $3}')" >> $GITHUB_ENV
-          rm -rf ytextracted
+          plist_dir="$RUNNER_TEMP/ytplist"
+          mkdir -p "$plist_dir"
+          unzip -q -j -o youtube.ipa "Payload/YouTube.app/Info.plist" -d "$plist_dir"
+          yt_version="$(plutil -extract CFBundleVersion raw -o - "$plist_dir/Info.plist" | tr -d '\r\n' | tr -c 'A-Za-z0-9._+~-' '_')"
+          rm -rf "$plist_dir"
+          if [ -z "$yt_version" ]; then
+            echo "::error::Could not read CFBundleVersion from the IPA's Info.plist"
+            exit 1
+          fi
+          echo "YT_VERSION=$yt_version" >> "$GITHUB_ENV"
 
       - name: Get Commit Hashes
         id: commit_hashes
@@ -164,32 +187,30 @@ jobs:
 
       - name: Set PATH Environment Variables
         run: |
-          echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH
-          echo "THEOS=${{ github.workspace }}/theos" >> $GITHUB_ENV
+          echo "$(brew --prefix make)/libexec/gnubin" >> "$GITHUB_PATH"
 
       - name: Cache Theos
-        id: theos
         uses: ./.github/actions/cache-theos
         with:
-          theos_commit: ${{ steps.commit_hashes.outputs.theos }}
-
-      - name: Download iOS SDK
-        if: steps.theos.outputs.cache-hit != 'true'
-        run: |
-          git clone --quiet --depth=1 -n --filter=tree:0 https://github.com/Tonwalter888/iOS-SDKs.git
-          cd iOS-SDKs
-          git sparse-checkout set --no-cone iPhoneOS18.6.sdk
-          git checkout
-          mv *.sdk $THEOS/sdks
+          sdk_version: ${{ env.SDK_VERSION }}
 
       - name: Install cyan and tbd
         run: |
           pipx install --force https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip
-          wget --quiet --no-verbose "https://github.com/inoahdev/tbd/releases/download/2.2/tbd-mac" -O /usr/local/bin/tbd
+          download() {
+            rm -f "$2"
+            if wget --quiet --no-verbose --tries=3 --waitretry=2 -O "$2" "$1"; then
+              return 0
+            fi
+            echo "::warning::wget failed for $2, retrying with curl"
+            rm -f "$2"
+            curl --fail --location --silent --show-error --retry 3 --retry-delay 2 -o "$2" "$1"
+          }
+          download "https://github.com/inoahdev/tbd/releases/download/2.2/tbd-mac" /usr/local/bin/tbd
           chmod +x /usr/local/bin/tbd
 
       - name: Clone Open in YouTube (Safari Extension)
-        if: inputs.opensafari == true  
+        if: inputs.opensafari == true
         run: |
           git clone --quiet -n --depth=1 --filter=tree:0 https://github.com/BillyCurtis/OpenYouTubeSafariExtension.git
           cd OpenYouTubeSafariExtension
@@ -198,11 +219,13 @@ jobs:
           mv *.appex ${{ github.workspace }}
 
       - name: Clone YouTubeHeader
+        env:
+          DEMC: ${{ inputs.demc }}
         run: |
-          rm -rf $THEOS/include/YouTubeHeader
-          git clone --quiet --depth=1 https://github.com/PoomSmart/YouTubeHeader.git $THEOS/include/YouTubeHeader
-          if [ "${{ inputs.demc }}" = "true" ]; then
-            rm -rf $THEOS/include/YTHeaders
+          rm -rf "$THEOS/include/YouTubeHeader"
+          git clone --quiet --depth=1 https://github.com/PoomSmart/YouTubeHeader.git "$THEOS/include/YouTubeHeader"
+          if [ "$DEMC" = "true" ]; then
+            rm -rf "$THEOS/include/YTHeaders"
             cp -r "$THEOS/include/YouTubeHeader" "$THEOS/include/YTHeaders"
           fi
 
@@ -218,7 +241,7 @@ jobs:
         id: cache_tweaks
         uses: ./.github/actions/cache-tweaks
         with:
-          sdk_version: '18.6'
+          sdk_version: ${{ env.SDK_VERSION }}
           youpip: ${{ inputs.youpip }}
           ytuhd: ${{ inputs.ytuhd }}
           ryd: ${{ inputs.ryd }}
@@ -233,7 +256,6 @@ jobs:
           volumeboost: ${{ inputs.volumeboost }}
           nativeshare: ${{ inputs.nativeshare }}
           pleasedontstopthemusic: ${{ inputs.pleasedontstopthemusic }}
-          theos_commit: ${{ steps.commit_hashes.outputs.theos }}
           youpip_commit: ${{ steps.commit_hashes.outputs.youpip }}
           ytuhd_commit: ${{ steps.commit_hashes.outputs.ytuhd }}
           ryd_commit: ${{ steps.commit_hashes.outputs.ryd }}
@@ -263,7 +285,13 @@ jobs:
           git clone --quiet --depth=1 https://github.com/tonwalter888/youmod.git
           cd youmod
           find Files -type f \( -name "*.h" -o -name "*.x" -o -name "*.m" \) -exec perl -pi -e 's/#import <roothide\.h>/#import <rootless.h>\n#define jbroot(path) ROOT_PATH_NS(path)/g' {} +
-          echo "YOUMOD_VERSION=$(grep '^Version:' control 2>/dev/null | awk '{print $2}' || grep '^Version:' DEBIAN/control | awk '{print $2}')" >> $GITHUB_ENV
+          if [ -f control ]; then ctl=control; else ctl=DEBIAN/control; fi
+          version="$(grep '^Version:' "$ctl" | awk '{print $2}' | tr -d '\r\n' | tr -c 'A-Za-z0-9._+~-' '_')"
+          if [ -z "$version" ]; then
+            echo "::error::Could not read the version from $ctl"
+            exit 1
+          fi
+          echo "YOUMOD_VERSION=$version" >> "$GITHUB_ENV"
           make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/youmod.deb
 
@@ -348,14 +376,14 @@ jobs:
         if: inputs.ythold == true && steps.cache_tweaks.outputs.cache_ythold_hit != 'true'
         run: |
           git clone --quiet --depth=1 https://github.com/joshuaseltzer/YTHoldForSpeed.git
-          cd YTHoldForSpeed && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64 TARGET=iphone:clang:18.6:14.0
+          cd YTHoldForSpeed && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64 TARGET=iphone:clang:${SDK_VERSION}:14.0
           mv packages/*.deb ${{ github.workspace }}/ythold.deb
 
       - name: Clone and Build VolumeBoostYT
         if: inputs.volumeboost == true && steps.cache_tweaks.outputs.cache_volumeboost_hit != 'true'
         run: |
-          git clone --quiet --depth=1 https://github.com/candyzp/VolumeBoostYT.git
-          cd VolumeBoostYT && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64
+          git clone --quiet --depth=1 https://github.com/mrdrvt99/VolumeBoostYT.git
+          cd VolumeBoostYT && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/volumeboost.deb
 
       - name: Clone and Build YTNativeShare
@@ -371,7 +399,7 @@ jobs:
         if: steps.cache_tweaks.outputs.cache_youfixplaybackissues_hit != 'true'
         run: |
           git clone --quiet --depth=1 https://github.com/mrdrvt99/YouFixPlaybackIssues.git
-          cd YouFixPlaybackIssues/YouFixPlaybackIssues && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless TARGET=iphone:clang:18.6
+          cd YouFixPlaybackIssues/YouFixPlaybackIssues && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless TARGET=iphone:clang:${SDK_VERSION}
           mv packages/*.deb ${{ github.workspace }}/youfixplaybackissues.deb
 
       - name: Clone and Build PleaseDontStopTheMusic
@@ -383,15 +411,23 @@ jobs:
           mv rootless/packages/*.deb ${{ github.workspace }}/pleasedontstopthemusic.deb
 
       - name: Inject Tweaks Into IPA
+        env:
+          OPENSAFARI: ${{ inputs.opensafari }}
+          DISPLAY_NAME: ${{ inputs.display_name }}
+          BUNDLE_ID: ${{ inputs.bundle_id }}
         run: |
-          tweaks=""
-          if [ "${{ inputs.opensafari }}" = "true" ] && [ -e "OpenYouTubeSafariExtension.appex" ]; then
-            tweaks="OpenYouTubeSafariExtension.appex"
+          tweaks=()
+          if [ "$OPENSAFARI" = "true" ] && [ -e "OpenYouTubeSafariExtension.appex" ]; then
+            tweaks+=("OpenYouTubeSafariExtension.appex")
           fi
           for f in *.deb; do
-            [ -f "$f" ] && tweaks="$tweaks $f"
+            if [ -f "$f" ]; then
+              tweaks+=("$f")
+            fi
           done
-          cyan -i youtube.ipa -o YouMod_${{ env.YT_VERSION }}_${{ env.YOUMOD_VERSION }}.ipa -uwesf $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
+          ipa_name="YouMod_${YT_VERSION}_${YOUMOD_VERSION}.ipa"
+          cyan -i youtube.ipa -o "$ipa_name" -uwesf "${tweaks[@]}" -n "$DISPLAY_NAME" -b "$BUNDLE_ID"
+          echo "IPA_NAME=$ipa_name" >> "$GITHUB_ENV"
 
       - name: Create a Draft Release
         env:
@@ -403,17 +439,20 @@ jobs:
           done
           gh release create "youmod-ipa${i}" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "YouMod_${{ env.YT_VERSION }}_${{ env.YOUMOD_VERSION }}" \
+            --title "${IPA_NAME%.ipa}" \
             --draft \
-            YouMod_${{ env.YT_VERSION }}_${{ env.YOUMOD_VERSION }}.ipa
+            "$IPA_NAME"
 
-      - name: Job Summary - Build Complete
-        run: echo -e '### 🛠️ Build YouMod IPA Complete!' >> $GITHUB_STEP_SUMMARY
-
-      - name: Job Summary - Output the Draft Release Link
+      - name: Job Summary
         run: |
-          echo -e "### 🚀 Draft Release\n\nDraft release has been created successfully! You can view your release here: https://github.com/${{ github.repository }}/releases" >> $GITHUB_STEP_SUMMARY
-
-      - name: Job Summary - Cleanup
-        run: |
-          echo -e "### 🧹 Cleanup\n\nYou can remove previous GitHub Actions run here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-workflows-run.yml And if you want to delete old draft releases you have then here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-draft-releases.yml" >> $GITHUB_STEP_SUMMARY
+          {
+            echo '### 🛠️ Build YouMod IPA Complete!'
+            echo
+            echo '### 🚀 Draft Release'
+            echo
+            echo "Draft release has been created successfully! You can view your release here: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases"
+            echo
+            echo '### 🧹 Cleanup'
+            echo
+            echo "You can remove previous GitHub Actions run here: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/workflows/delete-old-workflows-run.yml And if you want to delete old draft releases you have then here: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/workflows/delete-old-draft-releases.yml"
+          } >> "$GITHUB_STEP_SUMMARY"

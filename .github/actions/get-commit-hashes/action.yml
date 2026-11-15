@@ -1,30 +1,33 @@
 name: Get Commit Hashes
-description: Fetches latest commit hash for each tweak repo to use as cache keys
- 
+description: Resolves the latest commit hash of each tweak repo (used as cache keys)
+
 inputs:
   isponsorblock:
+    description: Resolve isponsorblock
     required: false
     default: 'false'
   demc:
+    description: Resolve demc
     required: false
     default: 'false'
   ythold:
+    description: Resolve ythold
     required: false
     default: 'false'
   volumeboost:
+    description: Resolve volumeboost
     required: false
     default: 'false'
   nativeshare:
+    description: Resolve nativeshare
     required: false
     default: 'false'
   pleasedontstopthemusic:
+    description: Resolve pleasedontstopthemusic
     required: false
     default: 'false'
 
 outputs:
-  theos:
-    description: Theos commit hash
-    value: ${{ steps.hashes.outputs.theos }}
   youpip:
     description: YouPiP commit hash
     value: ${{ steps.hashes.outputs.youpip }}
@@ -60,7 +63,7 @@ outputs:
     value: ${{ steps.hashes.outputs.alderis }}
   youslider:
     description: YouSlider commit hash
-    value: ${{ steps.hashes.outputs.youslider }}  
+    value: ${{ steps.hashes.outputs.youslider }}
   youchoose:
     description: YouChooseQuality commit hash
     value: ${{ steps.hashes.outputs.youchoose }}
@@ -104,63 +107,83 @@ runs:
     - name: Fetch commit hashes
       id: hashes
       shell: bash
+      env:
+        ISPONSORBLOCK: ${{ inputs.isponsorblock }}
+        DEMC: ${{ inputs.demc }}
+        YTHOLD: ${{ inputs.ythold }}
+        VOLUMEBOOST: ${{ inputs.volumeboost }}
+        NATIVESHARE: ${{ inputs.nativeshare }}
+        PLEASEDONTSTOPTHEMUSIC: ${{ inputs.pleasedontstopthemusic }}
       run: |
+        export GIT_TERMINAL_PROMPT=0
+
         get_hash() {
-          git ls-remote "https://github.com/$1.git" HEAD | cut -f1
+          local name="$1" repo="$2" hash="" attempt
+          for attempt in 1 2 3; do
+            hash="$(git ls-remote "https://github.com/${repo}.git" HEAD 2>/dev/null | awk 'NR==1 {print $1}' || true)"
+            if [[ "$hash" =~ ^[0-9a-f]{40,64}$ ]]; then
+              break
+            fi
+            hash=""
+            sleep 2
+          done
+          if [ -z "$hash" ]; then
+            echo "::warning title=Commit lookup failed::Could not resolve HEAD of ${repo}; its cache is skipped for this run"
+          fi
+          echo "${name}=${hash}" >> "$GITHUB_OUTPUT"
         }
 
-        echo "theos=$(get_hash theos/theos)"                                         >> $GITHUB_OUTPUT
-        echo "youpip=$(get_hash PoomSmart/YouPiP)"                                   >> $GITHUB_OUTPUT
-        echo "ytuhd=$(get_hash Tonwalter888/YTUHD)"                                  >> $GITHUB_OUTPUT
-        echo "ryd=$(get_hash PoomSmart/Return-YouTube-Dislikes)"                     >> $GITHUB_OUTPUT
-        echo "ygs=$(get_hash PoomSmart/YouGroupSettings)"                            >> $GITHUB_OUTPUT
-        echo "ytvo=$(get_hash PoomSmart/YTVideoOverlay)"                             >> $GITHUB_OUTPUT
-        echo "ytabconfig=$(get_hash PoomSmart/YTABConfig)"                           >> $GITHUB_OUTPUT
-        echo "youquality=$(get_hash PoomSmart/YouQuality)"                           >> $GITHUB_OUTPUT
-        echo "youspeed=$(get_hash PoomSmart/YouSpeed)"                               >> $GITHUB_OUTPUT
-        echo "youmute=$(get_hash PoomSmart/YouMute)"                                 >> $GITHUB_OUTPUT
-        echo "youloop=$(get_hash bhackel/YouLoop)"                                   >> $GITHUB_OUTPUT
-        echo "alderis=$(get_hash hbang/Alderis)"                                     >> $GITHUB_OUTPUT
-        echo "youslider=$(get_hash PoomSmart/YouSlider)"                             >> $GITHUB_OUTPUT
-        echo "youchoose=$(get_hash PoomSmart/YouChooseQuality)"                      >> $GITHUB_OUTPUT
-        echo "gonerino=$(get_hash castdrian/Gonerino)"                               >> $GITHUB_OUTPUT
-        echo "ytweaks=$(get_hash fosterbarnes/YTweaks)"                              >> $GITHUB_OUTPUT
-        echo "yougetcaption=$(get_hash PoomSmart/YouGetCaption)"                     >> $GITHUB_OUTPUT
-        echo "iamyoutube=$(get_hash PoomSmart/IAmYouTube)"                           >> $GITHUB_OUTPUT
-        echo "youfixplaybackissues=$(get_hash mrdrvt99/YouFixPlaybackIssues)"        >> $GITHUB_OUTPUT
+        get_hash youpip               PoomSmart/YouPiP
+        get_hash ytuhd                Tonwalter888/YTUHD
+        get_hash ryd                  PoomSmart/Return-YouTube-Dislikes
+        get_hash ygs                  PoomSmart/YouGroupSettings
+        get_hash ytvo                 PoomSmart/YTVideoOverlay
+        get_hash ytabconfig           PoomSmart/YTABConfig
+        get_hash youquality           PoomSmart/YouQuality
+        get_hash youspeed             PoomSmart/YouSpeed
+        get_hash youmute              PoomSmart/YouMute
+        get_hash youloop              bhackel/YouLoop
+        get_hash alderis              hbang/Alderis
+        get_hash youslider            PoomSmart/YouSlider
+        get_hash youchoose            PoomSmart/YouChooseQuality
+        get_hash gonerino             castdrian/Gonerino
+        get_hash ytweaks              fosterbarnes/YTweaks
+        get_hash yougetcaption        PoomSmart/YouGetCaption
+        get_hash iamyoutube           PoomSmart/IAmYouTube
+        get_hash youfixplaybackissues mrdrvt99/YouFixPlaybackIssues
 
-        if [ "${{ inputs.isponsorblock }}" = "true" ]; then
-          echo "isponsorblock=$(get_hash Galactic-Dev/iSponsorBlock)"                >> $GITHUB_OUTPUT
+        if [ "$ISPONSORBLOCK" = "true" ]; then
+          get_hash isponsorblock Galactic-Dev/iSponsorBlock
         else
-          echo "isponsorblock=disabled"                                              >> $GITHUB_OUTPUT
+          echo "isponsorblock=disabled" >> "$GITHUB_OUTPUT"
         fi
 
-        if [ "${{ inputs.demc }}" = "true" ]; then
-          echo "demc=$(get_hash therealFoxster/DontEatMyContent)"                    >> $GITHUB_OUTPUT
+        if [ "$DEMC" = "true" ]; then
+          get_hash demc therealFoxster/DontEatMyContent
         else
-          echo "demc=disabled"                                                       >> $GITHUB_OUTPUT
+          echo "demc=disabled" >> "$GITHUB_OUTPUT"
         fi
 
-        if [ "${{ inputs.ythold }}" = "true" ]; then
-          echo "ythold=$(get_hash joshuaseltzer/YTHoldForSpeed)"                     >> $GITHUB_OUTPUT
+        if [ "$YTHOLD" = "true" ]; then
+          get_hash ythold joshuaseltzer/YTHoldForSpeed
         else
-          echo "ythold=disabled"                                                     >> $GITHUB_OUTPUT
+          echo "ythold=disabled" >> "$GITHUB_OUTPUT"
         fi
 
-        if [ "${{ inputs.volumeboost }}" = "true" ]; then
-          echo "volumeboost=$(get_hash candyzp/VolumeBoostYT)"                       >> $GITHUB_OUTPUT
+        if [ "$VOLUMEBOOST" = "true" ]; then
+          get_hash volumeboost mrdrvt99/VolumeBoostYT
         else
-          echo "volumeboost=disabled"                                                >> $GITHUB_OUTPUT
+          echo "volumeboost=disabled" >> "$GITHUB_OUTPUT"
         fi
 
-        if [ "${{ inputs.nativeshare }}" = "true" ]; then
-          echo "nativeshare=$(get_hash jkhsjdhjs/youtube-native-share)"              >> $GITHUB_OUTPUT
+        if [ "$NATIVESHARE" = "true" ]; then
+          get_hash nativeshare jkhsjdhjs/youtube-native-share
         else
-          echo "nativeshare=disabled"                                                >> $GITHUB_OUTPUT
+          echo "nativeshare=disabled" >> "$GITHUB_OUTPUT"
         fi
 
-        if [ "${{ inputs.pleasedontstopthemusic }}" = "true" ]; then
-          echo "pleasedontstopthemusic=$(get_hash mikey820/PleaseDontStopTheMusic)"  >> $GITHUB_OUTPUT
+        if [ "$PLEASEDONTSTOPTHEMUSIC" = "true" ]; then
+          get_hash pleasedontstopthemusic mikey820/PleaseDontStopTheMusic
         else
-          echo "pleasedontstopthemusic=disabled"                                     >> $GITHUB_OUTPUT
+          echo "pleasedontstopthemusic=disabled" >> "$GITHUB_OUTPUT"
         fi

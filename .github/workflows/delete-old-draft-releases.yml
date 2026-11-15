@@ -6,15 +6,16 @@ on:
              description: "Set a certain amount of time you want to keep. (s=seconds,m=minutes,h=hours,d=days,w=weeks,mo=months,y=years)"
              default: ""
              required: false
-             type: string  
+             type: string
 
 permissions:
   contents: write
-  
+
 jobs:
   build:
     name: Delete old draft releases
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Delete old draft releases
         uses: hugo19941994/delete-draft-releases@v3.0.0

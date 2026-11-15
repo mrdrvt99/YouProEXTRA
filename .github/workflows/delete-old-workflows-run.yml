@@ -60,6 +60,7 @@ jobs:
   build:
     name: Delete old workflows run
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       actions: write
       contents: read

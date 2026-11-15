@@ -88,7 +88,7 @@ on:
         type: boolean
 
       youslider:
-        description: "Integrate YouSlider"
+        description: "Integrate YouSlider(unstable in +v21)"
         default: false
         required: false
         type: boolean
@@ -153,12 +153,17 @@ on:
         required: false
         type: boolean
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build-tweaks:
+    permissions:
+      contents: read
     uses: ./.github/workflows/_build_tweaks.yml
     with:
       isponsorblock: ${{ inputs.isponsorblock }}
@@ -186,26 +191,38 @@ jobs:
   package:
     name: Build IPA with Custom tweak
     runs-on: macos-15
+    timeout-minutes: 30
     needs: build-tweaks
     permissions:
       contents: write
     env:
       HOMEBREW_NO_ENV_HINTS: 1
     steps:
+      - name: Hide Sensitive Inputs
+        uses: levibostian/action-hide-sensitive-inputs@v1
+        with:
+          exclude_inputs: bundle_id,display_name,custom_name,demc,isponsorblock,ythold,volumeboost,nativeshare,opensafari,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmute,youloop,pleasedontstopthemusic
+
       - name: Download Built Debs
         uses: actions/download-artifact@v8
         with:
           name: built-debs
           path: ${{ github.workspace }}
 
-      - name: Hide Sensitive Inputs
-        uses: levibostian/action-hide-sensitive-inputs@v1
-        with:
-          exclude_inputs: bundle_id,display_name,custom_name,demc,isponsorblock,ythold,volumeboost,nativeshare,opensafari,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmute,youloop,pleasedontstopthemusic
-
       - name: Download and Validate IPA
+        env:
+          IPA_URL: ${{ inputs.ipa_url }}
         run: |
-          wget "${{ inputs.ipa_url }}" --quiet --no-verbose -O youtube.ipa
+          download() {
+            rm -f "$2"
+            if wget --quiet --no-verbose --tries=3 --waitretry=2 -O "$2" "$1"; then
+              return 0
+            fi
+            echo "::warning::wget failed for $2, retrying with curl"
+            rm -f "$2"
+            curl --fail --location --silent --show-error --retry 3 --retry-delay 2 -o "$2" "$1"
+          }
+          download "$IPA_URL" youtube.ipa
           file_type=$(file --mime-type -b youtube.ipa)
           if [[ "$file_type" != "application/x-ios-app" && "$file_type" != "application/zip" ]]; then
             echo "::error::Validation failed: The downloaded file is not a valid IPA. Detected type: $file_type."
@@ -213,11 +230,24 @@ jobs:
           fi
 
       - name: Download and Validate Custom .deb
+        env:
+          DEB_URL: ${{ inputs.deb_url }}
         run: |
-          DEB_FILENAME=$(basename "${{ inputs.deb_url }}" | cut -d'?' -f1)
-          [[ "$DEB_FILENAME" != *.deb ]] && DEB_FILENAME="${DEB_FILENAME}.deb"
-          wget "${{ inputs.deb_url }}" --quiet --no-verbose -O "$DEB_FILENAME"
-          echo "CUSTOM_DEB_FILENAME=$DEB_FILENAME" >> $GITHUB_ENV
+          download() {
+            rm -f "$2"
+            if wget --quiet --no-verbose --tries=3 --waitretry=2 -O "$2" "$1"; then
+              return 0
+            fi
+            echo "::warning::wget failed for $2, retrying with curl"
+            rm -f "$2"
+            curl --fail --location --silent --show-error --retry 3 --retry-delay 2 -o "$2" "$1"
+          }
+          DEB_FILENAME=$(basename "$DEB_URL" | cut -d'?' -f1)
+          if [[ "$DEB_FILENAME" != *.deb ]]; then
+            DEB_FILENAME="${DEB_FILENAME}.deb"
+          fi
+          download "$DEB_URL" "$DEB_FILENAME"
+          echo "CUSTOM_DEB_FILENAME=$DEB_FILENAME" >> "$GITHUB_ENV"
 
           deb_type=$(file --mime-type -b "$DEB_FILENAME")
           if [[ "$deb_type" != "application/vnd.debian.binary-package" ]]; then
@@ -228,7 +258,7 @@ jobs:
       - name: Get Custom .deb Version
         run: |
           mkdir _deb_extract && cd _deb_extract
-          ar x "../${{ env.CUSTOM_DEB_FILENAME }}" >/dev/null 2>&1
+          ar x "../$CUSTOM_DEB_FILENAME" >/dev/null 2>&1
           if [ -f control.tar.gz ]; then
             tar -xzf control.tar.gz ./control
           elif [ -f control.tar.xz ]; then
@@ -244,34 +274,55 @@ jobs:
             echo "::error::Could not extract version from .deb control file"
             exit 1
           fi
-          echo "CUSTOM_DEB_VERSION=$VERSION" >> $GITHUB_ENV
+          VERSION="$(printf '%s' "$VERSION" | tr -c 'A-Za-z0-9._+~-' '_')"
+          echo "CUSTOM_DEB_VERSION=$VERSION" >> "$GITHUB_ENV"
           cd .. && rm -rf _deb_extract
 
       - name: Get YouTube Version
         run: |
-          unzip -q youtube.ipa -d ytextracted
-          echo "YT_VERSION=$(grep -A 1 '<key>CFBundleVersion</key>' ytextracted/Payload/YouTube.app/Info.plist | grep '<string>' | awk -F'[><]' '{print $3}')" >> $GITHUB_ENV
-          rm -rf ytextracted
+          plist_dir="$RUNNER_TEMP/ytplist"
+          mkdir -p "$plist_dir"
+          unzip -q -j -o youtube.ipa "Payload/YouTube.app/Info.plist" -d "$plist_dir"
+          yt_version="$(plutil -extract CFBundleVersion raw -o - "$plist_dir/Info.plist" | tr -d '\r\n' | tr -c 'A-Za-z0-9._+~-' '_')"
+          rm -rf "$plist_dir"
+          if [ -z "$yt_version" ]; then
+            echo "::error::Could not read CFBundleVersion from the IPA's Info.plist"
+            exit 1
+          fi
+          echo "YT_VERSION=$yt_version" >> "$GITHUB_ENV"
 
       - name: Install cyan
         run: |
           pipx install --force https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip
 
       - name: Sanitize Custom Name
+        env:
+          CUSTOM_NAME: ${{ inputs.custom_name }}
         run: |
-          SANITIZED_NAME=$(echo "${{ inputs.custom_name }}" | tr ' ' '_' | tr -cd '[:alnum:]_.-')
-          echo "SANITIZED_NAME=$SANITIZED_NAME" >> $GITHUB_ENV
+          SANITIZED_NAME=$(printf '%s' "$CUSTOM_NAME" | tr ' ' '_' | tr -cd '[:alnum:]_.-')
+          if [ -z "$SANITIZED_NAME" ]; then
+            SANITIZED_NAME="YouProExtra"
+          fi
+          echo "SANITIZED_NAME=$SANITIZED_NAME" >> "$GITHUB_ENV"
 
       - name: Inject Tweaks Into IPA
+        env:
+          OPENSAFARI: ${{ inputs.opensafari }}
+          DISPLAY_NAME: ${{ inputs.display_name }}
+          BUNDLE_ID: ${{ inputs.bundle_id }}
         run: |
-          tweaks=""
-          if [ "${{ inputs.opensafari }}" = "true" ] && [ -e "OpenYouTubeSafariExtension.appex" ]; then
-            tweaks="OpenYouTubeSafariExtension.appex"
+          tweaks=()
+          if [ "$OPENSAFARI" = "true" ] && [ -e "OpenYouTubeSafariExtension.appex" ]; then
+            tweaks+=("OpenYouTubeSafariExtension.appex")
           fi
           for f in *.deb; do
-            [ -f "$f" ] && tweaks="$tweaks $f"
+            if [ -f "$f" ]; then
+              tweaks+=("$f")
+            fi
           done
-          cyan -i youtube.ipa -o "${{ env.SANITIZED_NAME }}_${{ env.YT_VERSION }}_${{ env.CUSTOM_DEB_VERSION }}.ipa" -uwesf $tweaks -n "${{ inputs.display_name }}" -b ${{ inputs.bundle_id }}
+          ipa_name="${SANITIZED_NAME}_${YT_VERSION}_${CUSTOM_DEB_VERSION}.ipa"
+          cyan -i youtube.ipa -o "$ipa_name" -uwesf "${tweaks[@]}" -n "$DISPLAY_NAME" -b "$BUNDLE_ID"
+          echo "IPA_NAME=$ipa_name" >> "$GITHUB_ENV"
 
       - name: Create a Draft Release
         env:
@@ -283,17 +334,20 @@ jobs:
           done
           gh release create "youproextra-customdeb-ipa${i}" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "${{ env.SANITIZED_NAME }}_${{ env.YT_VERSION }}_${{ env.CUSTOM_DEB_VERSION }}" \
+            --title "${IPA_NAME%.ipa}" \
             --draft \
-            "${{ env.SANITIZED_NAME }}_${{ env.YT_VERSION }}_${{ env.CUSTOM_DEB_VERSION }}.ipa"
+            "$IPA_NAME"
 
-      - name: Job Summary - Build Complete
-        run: echo -e '### 🛠️ Build IPA with Custom tweak Complete!' >> $GITHUB_STEP_SUMMARY
-
-      - name: Job Summary - Output the Draft Release Link
+      - name: Job Summary
         run: |
-          echo -e "### 🚀 Draft Release\n\nDraft release has been created successfully! You can view your release here: https://github.com/${{ github.repository }}/releases" >> $GITHUB_STEP_SUMMARY
-
-      - name: Job Summary - Cleanup
-        run: |
-          echo -e "### 🧹 Cleanup\n\nYou can remove previous GitHub Actions run here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-workflows-run.yml And if you want to delete old draft releases you have then here: https://github.com/${{ github.repository }}/actions/workflows/delete-old-draft-releases.yml" >> $GITHUB_STEP_SUMMARY
+          {
+            echo '### 🛠️ Build IPA with Custom tweak Complete!'
+            echo
+            echo '### 🚀 Draft Release'
+            echo
+            echo "Draft release has been created successfully! You can view your release here: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases"
+            echo
+            echo '### 🧹 Cleanup'
+            echo
+            echo "You can remove previous GitHub Actions run here: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/workflows/delete-old-workflows-run.yml And if you want to delete old draft releases you have then here: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/workflows/delete-old-draft-releases.yml"
+          } >> "$GITHUB_STEP_SUMMARY"
