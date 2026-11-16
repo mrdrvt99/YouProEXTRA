@@ -22,9 +22,6 @@ inputs:
   youchoose:
     required: false
     default: 'true'
-  gonerino:
-    required: false
-    default: 'true'
   yougetcaption:
     required: false
     default: 'true'
@@ -50,6 +47,9 @@ inputs:
     required: false
     default: 'false'
   demc:
+    required: false
+    default: 'false'
+  ytlowcontrastmode:
     required: false
     default: 'false'
   ythold:
@@ -96,9 +96,6 @@ inputs:
   youchoose_commit:
     required: false
     default: ''
-  gonerino_commit:
-    required: false
-    default: ''
   ytweaks_commit:
     required: false
     default: ''
@@ -112,6 +109,9 @@ inputs:
     required: false
     default: 'disabled'
   demc_commit:
+    required: false
+    default: 'disabled'
+  ytlowcontrastmode_commit:
     required: false
     default: 'disabled'
   ythold_commit:
@@ -156,8 +156,6 @@ outputs:
     value: "${{ steps.cache_youslider.outputs.cache-hit }}"
   cache_youchoose_hit:
     value: "${{ steps.cache_youchoose.outputs.cache-hit }}"
-  cache_gonerino_hit:
-    value: "${{ steps.cache_gonerino.outputs.cache-hit }}"
   cache_ytweaks_hit:
     value: "${{ steps.cache_ytweaks.outputs.cache-hit }}"
   cache_yougetcaption_hit:
@@ -168,6 +166,8 @@ outputs:
     value: "${{ steps.cache_isponsorblock.outputs.cache-hit }}"
   cache_demc_hit:
     value: "${{ steps.cache_demc.outputs.cache-hit }}"
+  cache_ytlowcontrastmode_hit:
+    value: "${{ steps.cache_ytlowcontrastmode.outputs.cache-hit }}"
   cache_ythold_hit:
     value: "${{ steps.cache_ythold.outputs.cache-hit }}"
   cache_volumeboost_hit:
@@ -275,13 +275,6 @@ runs:
         key: youchoose-v1-${{ inputs.youchoose_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v6
-      if: inputs.gonerino == 'true' && inputs.gonerino_commit != ''
-      id: cache_gonerino
-      with:
-        path: ${{ github.workspace }}/gonerino.deb
-        key: gonerino-${{ inputs.gonerino_commit }}-sdk${{ inputs.sdk_version }}
-
-    - uses: actions/cache@v6
       if: inputs.ytweaks == 'true' && inputs.ytweaks_commit != ''
       id: cache_ytweaks
       with:
@@ -315,6 +308,13 @@ runs:
       with:
         path: ${{ github.workspace }}/demc.deb
         key: demc-${{ inputs.demc_commit }}-sdk${{ inputs.sdk_version }}
+
+    - uses: actions/cache@v6
+      if: inputs.ytlowcontrastmode == 'true' && inputs.ytlowcontrastmode_commit != ''
+      id: cache_ytlowcontrastmode
+      with:
+        path: ${{ github.workspace }}/ytlowcontrastmode.deb
+        key: ytlowcontrastmode-${{ inputs.ytlowcontrastmode_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v6
       if: inputs.ythold == 'true' && inputs.ythold_commit != ''

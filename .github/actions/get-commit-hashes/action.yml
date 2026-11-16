@@ -10,6 +10,10 @@ inputs:
     description: Resolve demc
     required: false
     default: 'false'
+  ytlowcontrastmode:
+    description: Resolve ytlowcontrastmode
+    required: false
+    default: 'false'
   ythold:
     description: Resolve ythold
     required: false
@@ -67,9 +71,6 @@ outputs:
   youchoose:
     description: YouChooseQuality commit hash
     value: ${{ steps.hashes.outputs.youchoose }}
-  gonerino:
-    description: Gonerino commit hash
-    value: ${{ steps.hashes.outputs.gonerino }}
   ytweaks:
     description: YTweaks commit hash
     value: ${{ steps.hashes.outputs.ytweaks }}
@@ -85,6 +86,9 @@ outputs:
   demc:
     description: DontEatMyContent commit hash
     value: ${{ steps.hashes.outputs.demc }}
+  ytlowcontrastmode:
+    description: YTLowContrastMode commit hash
+    value: ${{ steps.hashes.outputs.ytlowcontrastmode }}
   ythold:
     description: YTHoldForSpeed commit hash
     value: ${{ steps.hashes.outputs.ythold }}
@@ -110,6 +114,7 @@ runs:
       env:
         ISPONSORBLOCK: ${{ inputs.isponsorblock }}
         DEMC: ${{ inputs.demc }}
+        YTLOWCONTRASTMODE: ${{ inputs.ytlowcontrastmode }}
         YTHOLD: ${{ inputs.ythold }}
         VOLUMEBOOST: ${{ inputs.volumeboost }}
         NATIVESHARE: ${{ inputs.nativeshare }}
@@ -146,7 +151,6 @@ runs:
         get_hash alderis              hbang/Alderis
         get_hash youslider            PoomSmart/YouSlider
         get_hash youchoose            PoomSmart/YouChooseQuality
-        get_hash gonerino             castdrian/Gonerino
         get_hash ytweaks              fosterbarnes/YTweaks
         get_hash yougetcaption        PoomSmart/YouGetCaption
         get_hash iamyoutube           PoomSmart/IAmYouTube
@@ -162,6 +166,12 @@ runs:
           get_hash demc therealFoxster/DontEatMyContent
         else
           echo "demc=disabled" >> "$GITHUB_OUTPUT"
+        fi
+
+        if [ "$YTLOWCONTRASTMODE" = "true" ]; then
+          get_hash ytlowcontrastmode Mark02-2012/YTLowContrastMode
+        else
+          echo "ytlowcontrastmode=disabled" >> "$GITHUB_OUTPUT"
         fi
 
         if [ "$YTHOLD" = "true" ]; then

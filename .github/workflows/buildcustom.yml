@@ -45,6 +45,12 @@ on:
         required: false
         type: boolean
 
+      ytlowcontrastmode:
+        description: "Integrate YTLowContrastMode(iOS 15+)"
+        default: true
+        required: false
+        type: boolean
+
       isponsorblock:
         description: "Integrate iSponsorBlock(21.25.5+ incompatible)"
         default: false
@@ -88,19 +94,13 @@ on:
         type: boolean
 
       youslider:
-        description: "Integrate YouSlider(unstable in +v21)"
+        description: "Integrate YouSlider(+v21 unstable)"
         default: false
         required: false
         type: boolean
 
       ytweaks:
         description: "Integrate YTweaks(20.10.4+)"
-        default: false
-        required: false
-        type: boolean
-
-      gonerino:
-        description: "Integrate Gonerino(21.25.5+)"
         default: false
         required: false
         type: boolean
@@ -166,8 +166,10 @@ jobs:
       contents: read
     uses: ./.github/workflows/_build_tweaks.yml
     with:
+      youpro: false
       isponsorblock: ${{ inputs.isponsorblock }}
       demc: ${{ inputs.demc }}
+      ytlowcontrastmode: ${{ inputs.ytlowcontrastmode }}
       ythold: ${{ inputs.ythold }}
       volumeboost: ${{ inputs.volumeboost }}
       nativeshare: ${{ inputs.nativeshare }}
@@ -179,12 +181,10 @@ jobs:
       youslider: ${{ inputs.youslider }}
       ytweaks: ${{ inputs.ytweaks }}
       youchoose: ${{ inputs.youchoose }}
-      gonerino: ${{ inputs.gonerino }}
       yougetcaption: ${{ inputs.yougetcaption }}
       youspeed: ${{ inputs.youspeed }}
       youmute: ${{ inputs.youmute }}
       youloop: ${{ inputs.youloop }}
-      youpro: false
       opensafari: ${{ inputs.opensafari }}
       pleasedontstopthemusic: ${{ inputs.pleasedontstopthemusic }}
 
@@ -201,7 +201,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@v1
         with:
-          exclude_inputs: bundle_id,display_name,custom_name,demc,isponsorblock,ythold,volumeboost,nativeshare,opensafari,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmute,youloop,pleasedontstopthemusic
+          exclude_inputs: bundle_id,display_name,custom_name,demc,ytlowcontrastmode,isponsorblock,ythold,volumeboost,nativeshare,opensafari,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytweaks,youchoose,yougetcaption,youspeed,youmute,youloop,pleasedontstopthemusic
 
       - name: Download Built Debs
         uses: actions/download-artifact@v8

@@ -15,6 +15,10 @@ on:
         type: boolean
         required: false
         default: true
+      ytlowcontrastmode:
+        type: boolean
+        required: false
+        default: false
       ythold:
         type: boolean
         required: false
@@ -48,10 +52,6 @@ on:
         required: false
         default: true
       youchoose:
-        type: boolean
-        required: false
-        default: false
-      gonerino:
         type: boolean
         required: false
         default: false
@@ -117,6 +117,7 @@ jobs:
         with:
           isponsorblock: ${{ inputs.isponsorblock }}
           demc: ${{ inputs.demc }}
+          ytlowcontrastmode: ${{ inputs.ytlowcontrastmode }}
           ythold: ${{ inputs.ythold }}
           volumeboost: ${{ inputs.volumeboost }}
           nativeshare: ${{ inputs.nativeshare }}
@@ -176,6 +177,7 @@ jobs:
           sdk_version: ${{ env.SDK_VERSION }}
           isponsorblock: ${{ inputs.isponsorblock }}
           demc: ${{ inputs.demc }}
+          ytlowcontrastmode: ${{ inputs.ytlowcontrastmode }}
           ythold: ${{ inputs.ythold }}
           volumeboost: ${{ inputs.volumeboost }}
           nativeshare: ${{ inputs.nativeshare }}
@@ -185,7 +187,6 @@ jobs:
           ytabconfig: ${{ inputs.ytabconfig }}
           youquality: ${{ inputs.youquality }}
           youchoose: ${{ inputs.youchoose }}
-          gonerino: ${{ inputs.gonerino }}
           yougetcaption: ${{ inputs.yougetcaption }}
           youslider: ${{ inputs.youslider }}
           ytweaks: ${{ inputs.ytweaks }}
@@ -207,12 +208,12 @@ jobs:
           alderis_commit: ${{ steps.commit_hashes.outputs.alderis }}
           youslider_commit: ${{ steps.commit_hashes.outputs.youslider }}
           youchoose_commit: ${{ steps.commit_hashes.outputs.youchoose }}
-          gonerino_commit: ${{ steps.commit_hashes.outputs.gonerino }}
           ytweaks_commit: ${{ steps.commit_hashes.outputs.ytweaks }}
           yougetcaption_commit: ${{ steps.commit_hashes.outputs.yougetcaption }}
           iamyoutube_commit: ${{ steps.commit_hashes.outputs.iamyoutube }}
           isponsorblock_commit: ${{ steps.commit_hashes.outputs.isponsorblock }}
           demc_commit: ${{ steps.commit_hashes.outputs.demc }}
+          ytlowcontrastmode_commit: ${{ steps.commit_hashes.outputs.ytlowcontrastmode }}
           ythold_commit: ${{ steps.commit_hashes.outputs.ythold }}
           volumeboost_commit: ${{ steps.commit_hashes.outputs.volumeboost }}
           nativeshare_commit: ${{ steps.commit_hashes.outputs.nativeshare }}
@@ -317,13 +318,6 @@ jobs:
           cd YouChooseQuality && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/youchoose.deb
 
-      - name: Clone and Build Gonerino
-        if: inputs.gonerino == true && steps.cache_tweaks.outputs.cache_gonerino_hit != 'true'
-        run: |
-          git clone --quiet --depth=1 https://github.com/castdrian/Gonerino.git
-          cd Gonerino && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
-          mv packages/*.deb ${{ github.workspace }}/gonerino.deb
-
       - name: Clone and Build YTweaks
         if: inputs.ytweaks == true && steps.cache_tweaks.outputs.cache_ytweaks_hit != 'true'
         run: |
@@ -351,6 +345,13 @@ jobs:
           git clone --quiet --depth=1 https://github.com/therealFoxster/DontEatMyContent.git
           cd DontEatMyContent && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/demc.deb
+
+      - name: Clone and Build YTLowContrastMode
+        if: inputs.ytlowcontrastmode == true && steps.cache_tweaks.outputs.cache_ytlowcontrastmode_hit != 'true'
+        run: |
+          git clone --quiet --depth=1 https://github.com/Mark02-2012/YTLowContrastMode.git
+          cd YTLowContrastMode && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64
+          mv packages/*.deb ${{ github.workspace }}/ytlowcontrastmode.deb
 
       - name: Clone and Build iSponsorBlock
         if: inputs.isponsorblock == true && steps.cache_tweaks.outputs.cache_isponsorblock_hit != 'true'

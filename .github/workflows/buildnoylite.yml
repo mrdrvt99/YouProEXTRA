@@ -27,6 +27,24 @@ on:
         required: false
         type: boolean
 
+      demc:
+        description: "Integrate DontEatMyContent"
+        default: true
+        required: false
+        type: boolean
+
+      ytlowcontrastmode:
+        description: "Integrate YTLowContrastMode(iOS 15+)"
+        default: true
+        required: false
+        type: boolean
+
+      isponsorblock:
+        description: "Integrate iSponsorBlock(21.25.5+ incompatible)"
+        default: false
+        required: false
+        type: boolean
+
       youpip:
         description: "Integrate YouPiP"
         default: true
@@ -47,72 +65,54 @@ on:
 
       ytabconfig:
         description: "Integrate YTABConfig"
-        default: true
+        default: false
         required: false
         type: boolean
 
       youquality:
         description: "Integrate YouQuality"
-        default: true
+        default: false
         required: false
         type: boolean
 
       youchoose:
         description: "Integrate YouChooseQuality"
-        default: true
+        default: false
         required: false
         type: boolean
 
       youslider:
-        description: "Integrate YouSlider(unstable in +v21)"
+        description: "Integrate YouSlider(+v21 unstable)"
         default: false
         required: false
         type: boolean
 
       ytweaks:
         description: "Integrate YTweaks(20.10.4+)"
-        default: true
-        required: false
-        type: boolean
-
-      gonerino:
-        description: "Integrate Gonerino(21.25.5+)"
-        default: true
+        default: false
         required: false
         type: boolean
 
       yougetcaption:
         description: "Integrate YouGetCaption"
-        default: true
+        default: false
         required: false
         type: boolean
 
       youspeed:
         description: "Integrate YouSpeed"
-        default: true
+        default: false
         required: false
         type: boolean
 
       youmute:
         description: "Integrate YouMute"
-        default: true
+        default: false
         required: false
         type: boolean
 
       youloop:
         description: "Integrate YouLoop"
-        default: true
-        required: false
-        type: boolean
-
-      demc:
-        description: "Integrate DontEatMyContent"
-        default: true
-        required: false
-        type: boolean
-
-      isponsorblock:
-        description: "Integrate iSponsorBlock(21.25.5+ incompatible)"
         default: false
         required: false
         type: boolean
@@ -154,8 +154,10 @@ jobs:
       contents: read
     uses: ./.github/workflows/_build_tweaks.yml
     with:
+      youpro: false
       isponsorblock: ${{ inputs.isponsorblock }}
       demc: ${{ inputs.demc }}
+      ytlowcontrastmode: ${{ inputs.ytlowcontrastmode }}
       ythold: ${{ inputs.ythold }}
       volumeboost: ${{ inputs.volumeboost }}
       nativeshare: ${{ inputs.nativeshare }}
@@ -167,12 +169,10 @@ jobs:
       youslider: ${{ inputs.youslider }}
       ytweaks: ${{ inputs.ytweaks }}
       youchoose: ${{ inputs.youchoose }}
-      gonerino: ${{ inputs.gonerino }}
       yougetcaption: ${{ inputs.yougetcaption }}
       youspeed: ${{ inputs.youspeed }}
       youmute: ${{ inputs.youmute }}
       youloop: ${{ inputs.youloop }}
-      youpro: false
       opensafari: ${{ inputs.opensafari }}
       pleasedontstopthemusic: ${{ inputs.pleasedontstopthemusic }}
 
@@ -189,7 +189,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@v1
         with:
-          exclude_inputs: bundle_id,display_name,demc,isponsorblock,ythold,volumeboost,nativeshare,opensafari,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytweaks,youchoose,gonerino,yougetcaption,youspeed,youmute,youloop,pleasedontstopthemusic
+          exclude_inputs: bundle_id,display_name,demc,ytlowcontrastmode,isponsorblock,ythold,volumeboost,nativeshare,opensafari,youpip,ytuhd,ryd,ytabconfig,youquality,youslider,ytweaks,youchoose,yougetcaption,youspeed,youmute,youloop,pleasedontstopthemusic
 
       - name: Download Built Debs
         uses: actions/download-artifact@v8

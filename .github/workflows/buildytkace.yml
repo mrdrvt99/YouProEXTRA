@@ -32,6 +32,12 @@ on:
         required: false
         type: boolean
 
+      ytlowcontrastmode:
+        description: "Integrate YTLowContrastMode(iOS 15+)"
+        default: true
+        required: false
+        type: boolean
+
       youpip:
         description: "Integrate YouPiP"
         default: true
@@ -74,15 +80,9 @@ on:
         required: false
         type: boolean
 
-      gonerino:
-        description: "Integrate Gonerino(21.25.5+)"
-        default: false
-        required: false
-        type: boolean
-
       yougetcaption:
         description: "Integrate YouGetCaption"
-        default: false
+        default: true
         required: false
         type: boolean
 
@@ -134,7 +134,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@v1
         with:
-          exclude_inputs: bundle_id,display_name,youpip,ytuhd,ryd,ytabconfig,youquality,gonerino,ytweaks,yougetcaption,demc,youchoose,ythold,volumeboost,nativeshare,opensafari,pleasedontstopthemusic
+          exclude_inputs: bundle_id,display_name,youpip,ytuhd,ryd,ytabconfig,youquality,ytweaks,yougetcaption,demc,ytlowcontrastmode,youchoose,ythold,volumeboost,nativeshare,opensafari,pleasedontstopthemusic
 
       - name: Download and Validate IPA
         env:
@@ -174,6 +174,7 @@ jobs:
         uses: ./.github/actions/get-commit-hashes
         with:
           demc: ${{ inputs.demc }}
+          ytlowcontrastmode: ${{ inputs.ytlowcontrastmode }}
           ythold: ${{ inputs.ythold }}
           volumeboost: ${{ inputs.volumeboost }}
           nativeshare: ${{ inputs.nativeshare }}
@@ -249,9 +250,9 @@ jobs:
           youquality: ${{ inputs.youquality }}
           youchoose: ${{ inputs.youchoose }}
           ytweaks: ${{ inputs.ytweaks }}
-          gonerino: ${{ inputs.gonerino }}
           yougetcaption: ${{ inputs.yougetcaption }}
           demc: ${{ inputs.demc }}
+          ytlowcontrastmode: ${{ inputs.ytlowcontrastmode }}
           ythold: ${{ inputs.ythold }}
           volumeboost: ${{ inputs.volumeboost }}
           nativeshare: ${{ inputs.nativeshare }}
@@ -263,11 +264,11 @@ jobs:
           ytvo_commit: ${{ steps.commit_hashes.outputs.ytvo }}
           youchoose_commit: ${{ steps.commit_hashes.outputs.youchoose }}
           ytweaks_commit: ${{ steps.commit_hashes.outputs.ytweaks }}
-          gonerino_commit: ${{ steps.commit_hashes.outputs.gonerino }}
           yougetcaption_commit: ${{ steps.commit_hashes.outputs.yougetcaption }}
           ytabconfig_commit: ${{ steps.commit_hashes.outputs.ytabconfig }}
           youquality_commit: ${{ steps.commit_hashes.outputs.youquality }}
           demc_commit: ${{ steps.commit_hashes.outputs.demc }}
+          ytlowcontrastmode_commit: ${{ steps.commit_hashes.outputs.ytlowcontrastmode }}
           ythold_commit: ${{ steps.commit_hashes.outputs.ythold }}
           volumeboost_commit: ${{ steps.commit_hashes.outputs.volumeboost }}
           nativeshare_commit: ${{ steps.commit_hashes.outputs.nativeshare }}
@@ -350,13 +351,6 @@ jobs:
           cd YTweaks && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/ytweaks.deb
 
-      - name: Clone and Build Gonerino
-        if: inputs.gonerino == true && steps.cache_tweaks.outputs.cache_gonerino_hit != 'true'
-        run: |
-          git clone --quiet --depth=1 https://github.com/castdrian/Gonerino.git
-          cd Gonerino && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
-          mv packages/*.deb ${{ github.workspace }}/gonerino.deb
-
       - name: Clone and Build YouGetCaption
         if: inputs.yougetcaption == true && steps.cache_tweaks.outputs.cache_yougetcaption_hit != 'true'
         run: |
@@ -370,6 +364,13 @@ jobs:
           git clone --quiet --depth=1 https://github.com/therealFoxster/DontEatMyContent.git
           cd DontEatMyContent && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/demc.deb
+
+      - name: Clone and Build YTLowContrastMode
+        if: inputs.ytlowcontrastmode == true && steps.cache_tweaks.outputs.cache_ytlowcontrastmode_hit != 'true'
+        run: |
+          git clone --quiet --depth=1 https://github.com/Mark02-2012/YTLowContrastMode.git
+          cd YTLowContrastMode && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless ARCHS=arm64
+          mv packages/*.deb ${{ github.workspace }}/ytlowcontrastmode.deb
 
       - name: Clone and Build YTHoldForSpeed
         if: inputs.ythold == true && steps.cache_tweaks.outputs.cache_ythold_hit != 'true'
