@@ -6,15 +6,15 @@ on:
       youpro:
         type: boolean
         required: false
-        default: true
+        default: false
       isponsorblock:
         type: boolean
         required: false
-        default: true
+        default: false
       demc:
         type: boolean
         required: false
-        default: true
+        default: false
       ytlowcontrastmode:
         type: boolean
         required: false
@@ -34,23 +34,23 @@ on:
       youpip:
         type: boolean
         required: false
-        default: true
+        default: false
       ytuhd:
         type: boolean
         required: false
-        default: true
+        default: false
       ryd:
         type: boolean
         required: false
-        default: true
+        default: false
       ytabconfig:
         type: boolean
         required: false
-        default: true
+        default: false
       youquality:
         type: boolean
         required: false
-        default: true
+        default: false
       youchoose:
         type: boolean
         required: false
@@ -62,27 +62,27 @@ on:
       youslider:
         type: boolean
         required: false
-        default: true
+        default: false
       ytweaks:
         type: boolean
         required: false
-        default: true
+        default: false
       youspeed:
         type: boolean
         required: false
-        default: true
+        default: false
       youmute:
         type: boolean
         required: false
-        default: true
+        default: false
       youloop:
         type: boolean
         required: false
-        default: true
+        default: false
       opensafari:
         type: boolean
         required: false
-        default: true
+        default: false
       pleasedontstopthemusic:
         type: boolean
         required: false
