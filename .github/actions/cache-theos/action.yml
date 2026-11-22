@@ -1,11 +1,11 @@
 name: Cache Theos
-description: Restores (or creates) the pinned Theos checkout together with the iOS SDK
+description: Restores (or creates) the latest Theos checkout together with the iOS SDK
 
 inputs:
   theos_commit:
-    description: Pinned Theos commit (part of the cache key)
+    description: Theos commit to use (defaults to latest on the master branch)
     required: false
-    default: 9bc73406cf80b711ef4d02c15ff1dedc4478a275
+    default: ''
   sdk_version:
     description: iOS SDK version bundled into Theos (part of the cache key)
     required: false
@@ -23,19 +23,33 @@ runs:
       shell: bash
       run: echo "THEOS=${{ github.workspace }}/theos" >> "$GITHUB_ENV"
 
+    - name: Resolve Theos commit
+      id: resolve
+      shell: bash
+      env:
+        INPUT_COMMIT: ${{ inputs.theos_commit }}
+      run: |
+        if [ -n "$INPUT_COMMIT" ]; then
+          sha="$INPUT_COMMIT"
+        else
+          sha="$(git ls-remote https://github.com/theos/theos.git HEAD | cut -f1)"
+        fi
+        test -n "$sha"
+        echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
     - name: Restore Theos cache
       id: cache
       uses: actions/cache@v6
       with:
         path: ${{ github.workspace }}/theos
-        key: theos-${{ inputs.theos_commit }}-sdk${{ inputs.sdk_version }}
+        key: theos-${{ steps.resolve.outputs.sha }}-sdk${{ inputs.sdk_version }}
 
     - name: Clone Theos
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       env:
         THEOS: ${{ github.workspace }}/theos
-        THEOS_COMMIT: ${{ inputs.theos_commit }}
+        THEOS_COMMIT: ${{ steps.resolve.outputs.sha }}
       run: |
         git clone --quiet https://github.com/theos/theos.git "$THEOS"
         cd "$THEOS"
