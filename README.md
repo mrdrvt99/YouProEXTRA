@@ -25,8 +25,6 @@
 - [YouLoop](https://github.com/bhackel/YouLoop.git) - Adds a player button to enable/disable looping on the current video.**(🛠️custom build)**
 - [YouQuality](https://github.com/PoomSmart/YTABConfig) - Views/changes video quality on iOS YouTube app faster.
 - [YouChooseQuality](https://github.com/PoomSmart/YouChooseQuality) - Auto-selects the video quality of choice in iOS YouTube app.
-- [YouSlider](https://github.com/PoomSmart/YouSlider) - Customizes iOS YouTube video slider and scrubber.**(🛠️custom build)**. 
-  > ⚠️ **NOTE:** YouSlider is unstable in versions +21.34.3 and above.⚠️
 - [YouGetCaption](https://github.com/PoomSmart/YouGetCaption) - Views and copies caption from YouTube videos.
 - [YTweaks](https://github.com/fosterbarnes/YTweaks) - Various tweaks for the iOS YouTube app.
 - [iSponsorBlock](https://github.com/Galactic-Dev/iSponsorBlock.git) - Skip Sponsorships in youtube videos.**(🛠️custom build)**. 
@@ -94,11 +92,11 @@
 
 ## Supported YouTube version
 <ul>
-   <li><strong>Latest confirmed:</strong> 21.46.3</li>
+   <li><strong>Latest confirmed:</strong> 21.47.6</li>
 
   > [!NOTE]
   > - iOS14+ to 16+ builds are now available on the releases page.
   
-   <li><strong>Date tested:</strong> Nov 16th, 2026</li>
+   <li><strong>Date tested:</strong> Nov 23th, 2026</li>
    <li><strong>YouPro/YTLite/YTKACE/YouMod:</strong> 1.3.4/6.0/1.1.8/2.0.0</li>
 </ul>
