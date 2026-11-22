@@ -120,13 +120,13 @@ concurrency:
 jobs:
   build:
     name: Build YTKACE IPA
-    runs-on: macos-15
+    runs-on: xcode-27
     timeout-minutes: 120
     permissions:
       contents: write
     env:
       HOMEBREW_NO_ENV_HINTS: 1
-      SDK_VERSION: '18.6'
+      SDK_VERSION: '26.5'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -184,7 +184,7 @@ jobs:
         run: |
           brew uninstall --ignore-dependencies bicep || true
           brew untap aws/tap azure/bicep || true
-          brew install --quiet make ldid swiftlint dpkg meson ninja go
+          brew install --quiet make ldid
 
       - name: Set PATH Environment Variables
         run: |

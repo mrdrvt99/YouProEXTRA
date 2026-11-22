@@ -9,7 +9,7 @@ inputs:
   sdk_version:
     description: iOS SDK version bundled into Theos (part of the cache key)
     required: false
-    default: '18.6'
+    default: '26.5'
 
 outputs:
   cache-hit:
@@ -28,7 +28,7 @@ runs:
       uses: actions/cache@v6
       with:
         path: ${{ github.workspace }}/theos
-        key: theos-v3-${{ inputs.theos_commit }}-sdk${{ inputs.sdk_version }}
+        key: theos-${{ inputs.theos_commit }}-sdk${{ inputs.sdk_version }}
 
     - name: Clone Theos
       if: steps.cache.outputs.cache-hit != 'true'
@@ -50,7 +50,7 @@ runs:
         SDK_VERSION: ${{ inputs.sdk_version }}
       run: |
         sdk_repo="$RUNNER_TEMP/iOS-SDKs"
-        git clone --quiet --depth=1 -n --filter=tree:0 https://github.com/Tonwalter888/iOS-SDKs.git "$sdk_repo"
+        git clone --quiet --depth=1 -n --filter=tree:0 https://github.com/xybp888/iOS-SDKs.git "$sdk_repo"
         cd "$sdk_repo"
         git sparse-checkout set --no-cone "iPhoneOS${SDK_VERSION}.sdk"
         git checkout

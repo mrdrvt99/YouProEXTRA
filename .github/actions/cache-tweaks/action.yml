@@ -25,9 +25,6 @@ inputs:
   yougetcaption:
     required: false
     default: 'true'
-  youslider:
-    required: false
-    default: 'true'
   ytweaks:
     required: false
     default: 'true'
@@ -38,9 +35,6 @@ inputs:
     required: false
     default: 'true'
   youloop:
-    required: false
-    default: 'true'
-  alderis:
     required: false
     default: 'true'
   isponsorblock:
@@ -85,12 +79,6 @@ inputs:
     required: false
     default: ''
   youloop_commit:
-    required: false
-    default: ''
-  alderis_commit:
-    required: false
-    default: ''
-  youslider_commit:
     required: false
     default: ''
   youchoose_commit:
@@ -150,10 +138,6 @@ outputs:
     value: "${{ steps.cache_youmute.outputs.cache-hit }}"
   cache_youloop_hit:
     value: "${{ steps.cache_youloop.outputs.cache-hit }}"
-  cache_alderis_hit:
-    value: "${{ steps.cache_alderis.outputs.cache-hit }}"
-  cache_youslider_hit:
-    value: "${{ steps.cache_youslider.outputs.cache-hit }}"
   cache_youchoose_hit:
     value: "${{ steps.cache_youchoose.outputs.cache-hit }}"
   cache_ytweaks_hit:
@@ -195,7 +179,7 @@ runs:
       id: cache_ytuhd
       with:
         path: ${{ github.workspace }}/ytuhd.deb
-        key: ytuhd-v1-${{ inputs.ytuhd_commit }}-sdk${{ inputs.sdk_version }}
+        key: ytuhd-${{ inputs.ytuhd_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v6
       if: inputs.ryd == 'true' && inputs.ryd_commit != ''
@@ -237,14 +221,14 @@ runs:
       id: cache_youspeed
       with:
         path: ${{ github.workspace }}/youspeed.deb
-        key: youspeed-v1-${{ inputs.youspeed_commit }}-sdk${{ inputs.sdk_version }}
+        key: youspeed-${{ inputs.youspeed_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v6
       if: inputs.youmute == 'true' && inputs.youmute_commit != ''
       id: cache_youmute
       with:
         path: ${{ github.workspace }}/ym.deb
-        key: youmute-v1-${{ inputs.youmute_commit }}-sdk${{ inputs.sdk_version }}
+        key: youmute-${{ inputs.youmute_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v6
       if: inputs.youloop == 'true' && inputs.youloop_commit != ''
@@ -254,25 +238,11 @@ runs:
         key: youloop-${{ inputs.youloop_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v6
-      if: inputs.alderis == 'true' && inputs.alderis_commit != ''
-      id: cache_alderis
-      with:
-        path: ${{ github.workspace }}/alderis.deb
-        key: alderis-${{ inputs.alderis_commit }}-sdk${{ inputs.sdk_version }}
-
-    - uses: actions/cache@v6
-      if: inputs.youslider == 'true' && inputs.youslider_commit != ''
-      id: cache_youslider
-      with:
-        path: ${{ github.workspace }}/youslider.deb
-        key: youslider-${{ inputs.youslider_commit }}-sdk${{ inputs.sdk_version }}
-
-    - uses: actions/cache@v6
       if: inputs.youchoose == 'true' && inputs.youchoose_commit != ''
       id: cache_youchoose
       with:
         path: ${{ github.workspace }}/youchoose.deb
-        key: youchoose-v1-${{ inputs.youchoose_commit }}-sdk${{ inputs.sdk_version }}
+        key: youchoose-${{ inputs.youchoose_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v6
       if: inputs.ytweaks == 'true' && inputs.ytweaks_commit != ''
@@ -300,7 +270,7 @@ runs:
       id: cache_isponsorblock
       with:
         path: ${{ github.workspace }}/isponsorblock.deb
-        key: isponsorblock-v1-${{ inputs.isponsorblock_commit }}-sdk${{ inputs.sdk_version }}
+        key: isponsorblock-${{ inputs.isponsorblock_commit }}-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v6
       if: inputs.demc == 'true' && inputs.demc_commit != ''
@@ -328,7 +298,7 @@ runs:
       id: cache_volumeboost
       with:
         path: ${{ github.workspace }}/volumeboost.deb
-        key: volumeboost-v1-${{ inputs.volumeboost_commit }}-arm64-sdk${{ inputs.sdk_version }}
+        key: volumeboost-${{ inputs.volumeboost_commit }}-arm64-sdk${{ inputs.sdk_version }}
 
     - uses: actions/cache@v6
       if: inputs.nativeshare == 'true' && inputs.nativeshare_commit != ''

@@ -59,10 +59,6 @@ on:
         type: boolean
         required: false
         default: false
-      youslider:
-        type: boolean
-        required: false
-        default: false
       ytweaks:
         type: boolean
         required: false
@@ -90,13 +86,13 @@ on:
 jobs:
   build-tweaks:
     name: Build Tweaks
-    runs-on: macos-15
+    runs-on: xcode-27
     timeout-minutes: 120
     permissions:
       contents: read
     env:
       HOMEBREW_NO_ENV_HINTS: 1
-      SDK_VERSION: '18.6'
+      SDK_VERSION: '26.5'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -105,7 +101,7 @@ jobs:
         run: |
           brew uninstall --ignore-dependencies bicep || true
           brew untap aws/tap azure/bicep || true
-          brew install --quiet make ldid swiftlint dpkg meson ninja go
+          brew install --quiet make ldid dpkg
 
       - name: Set PATH Environment Variables
         run: |
@@ -188,12 +184,10 @@ jobs:
           youquality: ${{ inputs.youquality }}
           youchoose: ${{ inputs.youchoose }}
           yougetcaption: ${{ inputs.yougetcaption }}
-          youslider: ${{ inputs.youslider }}
           ytweaks: ${{ inputs.ytweaks }}
           youspeed: ${{ inputs.youspeed }}
           youmute: ${{ inputs.youmute }}
           youloop: ${{ inputs.youloop }}
-          alderis: ${{ inputs.youslider }}
           pleasedontstopthemusic: ${{ inputs.pleasedontstopthemusic }}
           youpip_commit: ${{ steps.commit_hashes.outputs.youpip }}
           ytuhd_commit: ${{ steps.commit_hashes.outputs.ytuhd }}
@@ -205,8 +199,6 @@ jobs:
           youspeed_commit: ${{ steps.commit_hashes.outputs.youspeed }}
           youmute_commit: ${{ steps.commit_hashes.outputs.youmute }}
           youloop_commit: ${{ steps.commit_hashes.outputs.youloop }}
-          alderis_commit: ${{ steps.commit_hashes.outputs.alderis }}
-          youslider_commit: ${{ steps.commit_hashes.outputs.youslider }}
           youchoose_commit: ${{ steps.commit_hashes.outputs.youchoose }}
           ytweaks_commit: ${{ steps.commit_hashes.outputs.ytweaks }}
           yougetcaption_commit: ${{ steps.commit_hashes.outputs.yougetcaption }}
@@ -296,20 +288,6 @@ jobs:
           git clone --quiet --depth=1 https://github.com/bhackel/YouLoop.git
           cd YouLoop && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/youloop.deb
-
-      - name: Clone and Build Alderis
-        if: inputs.youslider == true && steps.cache_tweaks.outputs.cache_alderis_hit != 'true'
-        run: |
-          git clone --quiet --depth=1 https://github.com/hbang/Alderis.git
-          cd Alderis && make clean package DEBUG=0 FINALPACKAGE=1 ARCHS=arm64
-          mv packages/*.deb ${{ github.workspace }}/alderis.deb
-
-      - name: Clone and Build YouSlider
-        if: inputs.youslider == true && steps.cache_tweaks.outputs.cache_youslider_hit != 'true'
-        run: |
-          git clone --quiet --depth=1 https://github.com/PoomSmart/YouSlider.git
-          cd YouSlider && make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
-          mv packages/*.deb ${{ github.workspace }}/youslider.deb
 
       - name: Clone and Build YouChooseQuality
         if: inputs.youchoose == true && steps.cache_tweaks.outputs.cache_youchoose_hit != 'true'

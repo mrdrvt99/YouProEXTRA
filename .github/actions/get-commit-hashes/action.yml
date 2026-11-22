@@ -62,12 +62,6 @@ outputs:
   youloop:
     description: YouLoop commit hash
     value: ${{ steps.hashes.outputs.youloop }}
-  alderis:
-    description: Alderis commit hash
-    value: ${{ steps.hashes.outputs.alderis }}
-  youslider:
-    description: YouSlider commit hash
-    value: ${{ steps.hashes.outputs.youslider }}
   youchoose:
     description: YouChooseQuality commit hash
     value: ${{ steps.hashes.outputs.youchoose }}
@@ -148,8 +142,6 @@ runs:
         get_hash youspeed             PoomSmart/YouSpeed
         get_hash youmute              PoomSmart/YouMute
         get_hash youloop              bhackel/YouLoop
-        get_hash alderis              hbang/Alderis
-        get_hash youslider            PoomSmart/YouSlider
         get_hash youchoose            PoomSmart/YouChooseQuality
         get_hash ytweaks              fosterbarnes/YTweaks
         get_hash yougetcaption        PoomSmart/YouGetCaption

@@ -111,12 +111,6 @@ on:
 #        required: false
 #        type: boolean
 
-#      youslider:
-#        description: "Integrate YouSlider(unstable)"
-#        default: false
-#        required: false
-#       type: boolean
-
 #      ythold:
 #        description: "Integrate YTHoldForSpeed"
 #        default: false
@@ -164,14 +158,13 @@ jobs:
       youloop: ${{ inputs.youloop }}
       opensafari: ${{ inputs.opensafari }}
 #     isponsorblock: ${{ inputs.isponsorblock }}
-#     youslider: ${{ inputs.youslider }}
 #     ythold: ${{ inputs.ythold }}
 #     nativeshare: ${{ inputs.nativeshare }}
 #     pleasedontstopthemusic: ${{ inputs.pleasedontstopthemusic }}
 
   package:
     name: Build YouPro IPA
-    runs-on: macos-15
+    runs-on: xcode-27
     timeout-minutes: 30
     needs: build-tweaks
     permissions:
